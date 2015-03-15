@@ -17,32 +17,44 @@ TLS_ALERT = 21
 TLS_HANDSHAKE = 22
 TLS_APPLICATION_DATA = 23
 TLS_HEARTBEAT = 24
-TLS_CONTENT = {TLS_CHANGE_CIPHER_SPEC: "Change cipher spec (20)", TLS_ALERT: "Alert (21)", TLS_HANDSHAKE: "Handshake (22)", TLS_APPLICATION_DATA: "Application Data (23)", TLS_HEARTBEAT: "Heartbeat (24)"}
-TLS_VERSION = {(3, 0) : "SSL 3.0", (3, 1): "TLS 1.0", (3, 2): "TLS 1.1", (3, 3): "TLS 1.2"}
+TLS_CONTENT = {
+        TLS_CHANGE_CIPHER_SPEC: "Change cipher spec (20)", 
+        TLS_ALERT: "Alert (21)", 
+        TLS_HANDSHAKE: "Handshake (22)", 
+        TLS_APPLICATION_DATA: "Application Data (23)", 
+        TLS_HEARTBEAT: "Heartbeat (24)"
+    }
+TLS_VERSION = {
+        (3, 0): "SSL 3.0", 
+        (3, 1): "TLS 1.0", 
+        (3, 2): "TLS 1.1", 
+        (3, 3): "TLS 1.2"
+    }
 
 #Ports and hosts
-USER = "" #listen requests from everyone
+USER = "" #Listen requests from everyone
 USER_PORT = 443
-ENDPOINT = "31.13.93.3" #connect only to selected endpoint
+ENDPOINT = "31.13.93.3" #Connect only to selected endpoint
 ENDPOINT_PORT = 443
 
 #Data size
 data_buff = 4096
 
-#logger setup
+#Logger setup
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
+#Print hexadecimal and ASCII representation of data
 def log_data(data, b=16):
     pad = 0
     output = []
-    buff = ""
+    buff = "" #buffer of 16 chars
     for i in xrange(0, len(data), b):
             buff = data[i:i+b]
-            hex = binascii.hexlify(buff) #hex representation of data
+            hex = binascii.hexlify(buff) #Hex representation of data
             pad = 32 - len(hex)
-            txt = "" #ascii representation of data
+            txt = "" #ASCII representation of data
             for ch in buff:
                 if ((ord(ch)>126) or (ord(ch)<33)):
                         txt = txt + "."
@@ -51,12 +63,13 @@ def log_data(data, b=16):
             output.append("%2d\t %s%s\t %s" % (i, hex, pad*" ", txt))
     return "\n".join(output)
 
-def parse(data, response=False):
+#Parse data and print header information and payload
+def parse(data, is_response=False):
     lg = ["\n"]
     cont_type = ord(data[TLS_CONTENT_TYPE])
     version = (ord(data[TLS_VERSION_MAJOR]), ord(data[TLS_VERSION_MINOR]))
     length = 256*ord(data[TLS_LENGTH_MAJOR]) + ord(data[TLS_LENGTH_MINOR])
-    if (response):
+    if (is_response):
             if (cont_type == 23):
                     print("Endpoint : %d" % len(data))
             lg.append("Source : Endpoint")
@@ -77,15 +90,16 @@ def parse(data, response=False):
     lg.append("\n")
     logger.debug("\n".join(lg))
 
+#Start sockets on user side (proxy as server) and endpoint side (proxy as client)
 def start():
-    #start sockets on user side (proxy as server) and endpoint side (proxy as client)
     logger.info("Starting Proxy")
     user_setup()
     endpoint_setup()
     logger.info("Proxy is set up")
 
+#Restart sockets in case of error
 def restart():
-    #restart sockets in case of problem
+    logger.info("Restarting Proxy")
     try:
         user_socket.close()
         endpoint_socket.close()
@@ -95,39 +109,40 @@ def restart():
     endpoint_setup()
     logger.info("Proxy has restarted")
 
+#Create and configure user side socket
 def user_setup():
     global user_socket, user_connection, address
     logger.info("Setting up user socket")
     user_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    user_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #reuse socket option
+    user_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #Set options to reuse socket
     user_socket.bind((USER, USER_PORT))
     logger.info("User bind complete")
-#    user_socket.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1) #include IP headers
+#    user_socket.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1) #Include IP headers
     user_socket.listen(1)
     logger.info("User listen complete")
     user_connection, address = user_socket.accept()
     logger.info("User socket is set up")
 
+#Create and configure endpoint side socket
 def endpoint_setup():
     global endpoint_socket
     logger.info("Setting up endpoint socket")
     endpoint_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     logger.info("Connecting endpoint socket")
     endpoint_socket.connect((ENDPOINT, ENDPOINT_PORT))
-    endpoint_socket.setblocking(0) #set non-blocking, i.e. raise exception if send/recv is not completed
+    endpoint_socket.setblocking(0) #Set non-blocking, i.e. raise exception if send/recv is not completed
     logger.info("Endpoint socket is set up")
 
-#proxy loop
+#Start proxy and execute main loop
 start()
-logger.info("Starting main loop")
+logger.info("Starting main proxy loop")
 while 1:
     ready_to_read, ready_to_write, in_error = select.select([user_connection, endpoint_socket], [], [], 10)
-    
-    if user_connection in ready_to_read:
+    if user_connection in ready_to_read: #If user side socket is ready to read...
             data = ""
             try:
-                data = user_connection.recv(data_buff)
-            except:
+                data = user_connection.recv(data_buff) #...receive data from user...
+            except Exception as exc:
                 logger.error("User connection error")
                 logger.error(type(exc) + "\n" + exc.args + "\n" + exc)
                 restart()
@@ -135,15 +150,14 @@ while 1:
                     logger.info("User connection closed")
                     restart()
             else:
-                    parse(data)
+                    parse(data) #...parse it...
                     try:
-                        endpoint_socket.sendall(data)
-                    except:
+                        endpoint_socket.sendall(data) #...and send it to endpoint
+                    except Exception as exc:
                         logger.error("User data forwarding error")
                         logger.error(type(exc) + "\n" + exc.args + "\n" + exc)
                         restart()
-
-    if endpoint_socket in ready_to_read:
+    if endpoint_socket in ready_to_read: #Execute for the endpoint side the same as above
             data = ""
             try:
                 data = endpoint_socket.recv(data_buff)
@@ -155,14 +169,15 @@ while 1:
                     logger.info("Endpoint connection closed")
                     restart()
             else:
-                    parse(data, True)
+                    parse(data, True) #This is the response we want to attack
                     try:
                         user_connection.sendall(data)
-                    except:
+                    except Exception as exc:
                         logger.error("Endpoint data forwarding error")
                         logger.error(type(exc) + "\n" + exc.args + "\n" + exc)
                         restart()
 
+#Close sockets to terminate connection
 user_connection.close()
 endpoint_socket.close()
 logger.info("Connection closed")

@@ -71,21 +71,27 @@ def log_data(data, b=16):
 #Parse data and print header information and payload
 def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
     lg = ["\n"]
-
-    if (past_bytes_endpoint): #Check if there are any remaining bytes from previous endpoint record
+    
+    #Check if there are any remaining bytes from previous endpoint record
+    if (past_bytes_endpoint):
         if (is_response):
             lg.append("Data from previous TLS record: Endpoint\n")
             lg.append(log_data(data[0:past_bytes_endpoint]))
             data = data[past_bytes_endpoint:]
             past_bytes_endpoint = 0
             lg.append("\n")
-    if (past_bytes_user): #Same check for user record
-        if (is_response == False):
+            if (len(data) == 0):
+                    return ("\n".join(lg), past_bytes_endpoint, past_bytes_user)
+    #Same check for user record
+    if (past_bytes_user):
+        if (not is_response):
             lg.append("Data from previous TLS record: User\n")
             lg.append(log_data(data[0:past_bytes_user]))
             data = data[past_bytes_user:]
             past_bytes_user = 0
             lg.append("\n")
+            if (len(data) == 0):
+                    return ("\n".join(lg), past_bytes_endpoint, past_bytes_user)
 
     cont_type = ord(data[TLS_CONTENT_TYPE])
     version = (ord(data[TLS_VERSION_MAJOR]), ord(data[TLS_VERSION_MINOR]))
@@ -93,11 +99,11 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
 
     if (is_response):
             if (cont_type == 23):
-                    print("Endpoint : %d" % len(data))
+                    print("Endpoint application payload: %d" % length)
             lg.append("Source : Endpoint")
     else:
             if (cont_type == 23):
-                    print("User : %d" % len(data))
+                    print("User application payload: %d" % length)
             lg.append("Source : User")
     try:
         lg.append("Content Type : " + TLS_CONTENT[cont_type])
@@ -108,8 +114,9 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
     except:
         lg.append("TLS Version: Uknown %d %d" % (version[0], version[1]))
     lg.append("Payload Length: %d" % length)
-    lg.append("Data length: %d\n" % len(data))
-
+    lg.append("Packet Data length: %d\n" % len(data))
+    
+    #Check if TLS record spans to next TCP segment
     if (len(data)<length):
         if (is_response):
             past_bytes_endpoint = length + TLS_HEADER_LENGTH - len(data)
@@ -119,8 +126,9 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
     lg.append(log_data(data[0:TLS_HEADER_LENGTH]))
     lg.append(log_data(data[TLS_HEADER_LENGTH:TLS_HEADER_LENGTH+length]))
     lg.append("\n")
-
-    if (length<(len(data) - TLS_HEADER_LENGTH)): #Check if packet has more than one TLS records
+    
+    #Check if packet has more than one TLS records
+    if ((length<(len(data) - TLS_HEADER_LENGTH)) and (len(data[TLS_HEADER_LENGTH+length:])>0)):
         more_records, past_bytes_endpoint, past_bytes_user = parse(
                                                                    data[TLS_HEADER_LENGTH+length:], 
                                                                    past_bytes_endpoint, 
@@ -218,7 +226,7 @@ while 1:
                         logger.error(type(exc) + "\n" + exc.args + "\n" + exc)
                         restart()
 
-    if endpoint_socket in ready_to_read: #Execute for the endpoint side the same as above
+    if endpoint_socket in ready_to_read: #Same for the endpoint side
             data = ""
 
             try:
@@ -237,7 +245,7 @@ while 1:
                                                                          past_bytes_endpoint, 
                                                                          past_bytes_user,
                                                                          True
-                                                                        ) #...parse it...
+                                                                        )
                     logger.debug(output)
                     try:
                         user_connection.sendall(data)

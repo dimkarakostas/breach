@@ -46,7 +46,7 @@ past_bytes_endpoint = 0
 #logging.basicConfig(filename="breach.log") #Log in file
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 #Print hexadecimal and ASCII representation of data
 def log_data(data, b=16):
@@ -93,17 +93,30 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
             if (len(data) == 0):
                     return ("\n".join(lg), past_bytes_endpoint, past_bytes_user)
 
-    cont_type = ord(data[TLS_CONTENT_TYPE])
-    version = (ord(data[TLS_VERSION_MAJOR]), ord(data[TLS_VERSION_MINOR]))
-    length = 256*ord(data[TLS_LENGTH_MAJOR]) + ord(data[TLS_LENGTH_MINOR])
+    try:
+        cont_type = ord(data[TLS_CONTENT_TYPE])
+        version = (ord(data[TLS_VERSION_MAJOR]), ord(data[TLS_VERSION_MINOR]))
+        length = 256*ord(data[TLS_LENGTH_MAJOR]) + ord(data[TLS_LENGTH_MINOR])
+    except Exception as exc:
+        logger.error(exc)
+        if (is_response):
+            return ("", 0, past_bytes_user)
+        else:
+            return ("", past_bytes_endpoint, 0)
 
     if (is_response):
             if (cont_type == 23):
                     print("Endpoint application payload: %d" % length)
+                    with open('out.out', 'a') as f:
+                       f.write("Endpoint application payload: %d\n" % length)
+                       f.close()
             lg.append("Source : Endpoint")
     else:
             if (cont_type == 23):
                     print("User application payload: %d" % length)
+                    with open('out.out', 'a') as f:
+                       f.write("User application payload: %d\n" % length)
+                       f.close()
             lg.append("Source : User")
     try:
         lg.append("Content Type : " + TLS_CONTENT[cont_type])

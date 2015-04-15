@@ -103,21 +103,30 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
             return ("", 0, past_bytes_user)
         else:
             return ("", past_bytes_endpoint, 0)
-
+ 
     if (is_response):
-            if (cont_type == 23):
-                    print("Endpoint application payload: %d" % length)
-                    with open('out.out', 'a') as f:
-                       f.write("Endpoint application payload: %d\n" % length)
-                       f.close()
+            if (cont_type in TLS_CONTENT):
+                    print("Endpoint %s Length: %d" % (TLS_CONTENT[cont_type], length))
+                    if (cont_type == 23):
+                        #print("Endpoint application payload: %d" % length)
+                            with open('out.out', 'a') as f:
+                                f.write("Endpoint application payload: %d\n" % length)
+                                f.close()
+            else:
+                    print("Unassigned Content Type record (len = %d)" % len(data))
             lg.append("Source : Endpoint")
     else:
-            if (cont_type == 23):
-                    print("User application payload: %d" % length)
-                    with open('out.out', 'a') as f:
-                       f.write("User application payload: %d\n" % length)
-                       f.close()
+            if (cont_type in TLS_CONTENT):
+                    print("Endpoint %s Length: %d" % (TLS_CONTENT[cont_type], length))
+                    if (cont_type == 23):
+                        #print("Endpoint application payload: %d" % length)
+                            with open('out.out', 'a') as f:
+                                f.write("Endpoint application payload: %d\n" % length)
+                                f.close()
+            else:
+                    print("Unassigned Content Type record (len = %d)" % len(data))
             lg.append("Source : User")
+
     try:
         lg.append("Content Type : " + TLS_CONTENT[cont_type])
     except:
@@ -226,6 +235,7 @@ while 1:
                     logger.info("User connection closed")
                     restart()
             else:
+                    print("User Packet Length: %d" % len(data))
                     output, past_bytes_endpoint, past_bytes_user = parse(
                                                                          data, 
                                                                          past_bytes_endpoint, 
@@ -253,6 +263,7 @@ while 1:
                     logger.info("Endpoint connection closed")
                     restart()
             else:
+                    print("Endpoint Packet Length: %d" % len(data))
                     output, past_bytes_endpoint, past_bytes_user = parse(
                                                                          data, 
                                                                          past_bytes_endpoint, 

@@ -30,9 +30,13 @@ with open("parsed_output.log") as f:
                     ch = chr(c)
                     if (line.find("ghos" + ch) > -1):
                             pref, size = line.split("OK ")
+                            iterations[ch] = iterations[ch] + 1
+                            output_sum[ch] = output_sum[ch] + int(size)
+                            """
                             if ((int(size) < 12230) and (int(size) > 12200)):
                                 iterations[ch] = iterations[ch] + 1
                                 output_sum[ch] = output_sum[ch] + int(size)
+                            """
 
 system("rm parsed_output.log")
 

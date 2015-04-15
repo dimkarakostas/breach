@@ -13,4 +13,4 @@ index.html
 	
 breach_mitmdump.py
 	
-	Install [mitmdump](https://mitmproxy.org/index.html) and configure it to print request and response code in the same line. Run the script to start mitmdump and parse the output, calculating middle length value for each type of request.
+	Install [mitmdump](https://mitmproxy.org/index.html) and configure it to print request and response code in the same line (see mitmdump_files folder). Run the script to start mitmdump and parse the output, calculating middle length value for each type of request.

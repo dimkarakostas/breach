@@ -29,16 +29,17 @@ TLS_VERSION = {
     }
 
 # TLS Alert messages
+ALERT_HEADER = "1503010002"
 ALERT_MESSAGES = {
-            'CLOSE_NOTIFY' : binascii.unhexlify("15030100020200"),
-            'UNEXPECTED_MESSAGE' : binascii.unhexlify("1503010002020A"),
-            'DECRYPTION_FAILED' : binascii.unhexlify("15030100020217"),
-            'HANDSHAKE_FAILURE' : binascii.unhexlify("15030100020228"),
-            'ILLEGAL_PARAMETER' : binascii.unhexlify("1503010002022F"),
-            'ACCESS_DENIED' : binascii.unhexlify("15030100020231"),
-            'DECODE_ERROR' : binascii.unhexlify("15030100020232"),
-            'DECRYPT_ERROR' : binascii.unhexlify("15030100020233"),
-            'PROTOCOL_VERSION' : binascii.unhexlify("15030100020246")
+            'CLOSE_NOTIFY' : binascii.unhexlify(ALERT_HEADER + "0200"),
+            'UNEXPECTED_MESSAGE' : binascii.unhexlify(ALERT_HEADER + "020A"),
+            'DECRYPTION_FAILED' : binascii.unhexlify(ALERT_HEADER + "0217"),
+            'HANDSHAKE_FAILURE' : binascii.unhexlify(ALERT_HEADER + "0228"),
+            'ILLEGAL_PARAMETER' : binascii.unhexlify(ALERT_HEADER + "022F"),
+            'ACCESS_DENIED' : binascii.unhexlify(ALERT_HEADER + "0231"),
+            'DECODE_ERROR' : binascii.unhexlify(ALERT_HEADER + "0232"),
+            'DECRYPT_ERROR' : binascii.unhexlify(ALERT_HEADER + "0233"),
+            'PROTOCOL_VERSION' : binascii.unhexlify(ALERT_HEADER + "0246")
         }
 
 # Ports and nodes
@@ -50,3 +51,8 @@ ENDPOINT_PORT = 443
 # Buffers
 SOCKET_BUFFER = 4096
 LOG_BUFFER = 16
+
+# Downgrade
+ATTEMPT_DOWNGRADE = True
+MAX_TLS_POSITION = 10 # Iceweasel's max tls version byte position in Client Hello message
+MAX_TLS_ALLOWED = 1

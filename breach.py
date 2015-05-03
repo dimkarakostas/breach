@@ -116,7 +116,7 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
     lg.append("(Remaining) Packet Data length: %d\n" % len(data))
     
     # Check if TLS record spans to next TCP segment
-    if len(data) < length:
+    if len(data) - constants.TLS_HEADER_LENGTH < length:
         if is_response:
             past_bytes_endpoint = length + constants.TLS_HEADER_LENGTH - len(data)
         else:

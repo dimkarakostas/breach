@@ -43,34 +43,37 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
     if past_bytes_endpoint:
         if is_response:
             lg.append("Data from previous TLS record: Endpoint\n")
-            if past_bytes_endpoint > len(data):
+            if past_bytes_endpoint >= len(data):
                 lg.append(log_data(data))
                 lg.append("\n")
                 past_bytes_endpoint = past_bytes_endpoint - len(data)
                 return ("\n".join(lg), past_bytes_endpoint, past_bytes_user, downgrade)
             else:
+                lg.append(log_data(data[0:past_bytes_endpoint]))
+                lg.append("\n")
                 data = data[past_bytes_endpoint:]
                 past_bytes_endpoint = 0
-                lg.append("\n")
     # Same check for user record
     if past_bytes_user:
        if not is_response:
            lg.append("Data from previous TLS record: User\n")
-           if past_bytes_user > len(data):
+           if past_bytes_user >= len(data):
                lg.append(log_data(data))
                lg.append("\n")
                past_bytes_user = past_bytes_user - len(data)
                return ("\n".join(lg), past_bytes_endpoint, past_bytes_user, downgrade)
            else:
+               lg.append(log_data(data[0:past_bytes_user]))
+               lg.append("\n")
                data = data[past_bytes_user:]
                past_bytes_user = 0
-               lg.append("\n")
 
     try:
         cont_type = ord(data[constants.TLS_CONTENT_TYPE])
         version = (ord(data[constants.TLS_VERSION_MAJOR]), ord(data[constants.TLS_VERSION_MINOR]))
         length = 256*ord(data[constants.TLS_LENGTH_MAJOR]) + ord(data[constants.TLS_LENGTH_MINOR])
     except Exception as exc:
+        logger.error("Only %d remaining for next record, not enough for valid TLS header" % len(data))
         logger.error(exc)
         if is_response:
             return ("", 0, past_bytes_user, downgrade)
@@ -109,8 +112,8 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
         lg.append("TLS Version : " + constants.TLS_VERSION[(version[0], version[1])])
     except:
         lg.append("TLS Version: Uknown %d %d" % (version[0], version[1]))
-    lg.append("Payload Length: %d" % length)
-    lg.append("Packet Data length: %d\n" % len(data))
+    lg.append("TLS Payload Length: %d" % length)
+    lg.append("(Remaining) Packet Data length: %d\n" % len(data))
     
     # Check if TLS record spans to next TCP segment
     if len(data) < length:
@@ -202,7 +205,7 @@ while 1:
                 data = user_connection.recv(constants.SOCKET_BUFFER) # ...receive data from user...
             except Exception as exc:
                 logger.error("User connection error")
-                logger.error(type(exc) + "\n" + exc.args + "\n" + exc)
+                logger.error(exc)
                 restart()
 
             if len(data) == 0:
@@ -231,7 +234,7 @@ while 1:
                         endpoint_socket.sendall(data) # ...and send it to endpoint
                     except Exception as exc:
                         logger.error("User data forwarding error")
-                        logger.error(type(exc) + "\n" + exc.args + "\n" + exc)
+                        logger.error(exc)
                         restart()
 
     if endpoint_socket in ready_to_read: # Same for the endpoint side
@@ -241,7 +244,7 @@ while 1:
                 data = endpoint_socket.recv(constants.SOCKET_BUFFER)
             except Exception as exc:
                 logger.error("Endpoint connection error")
-                logger.error(type(exc) + "\n" + exc.args + "\n" + exc)
+                logger.error(exc)
                 restart()
 
             if len(data) == 0:
@@ -260,7 +263,7 @@ while 1:
                         user_connection.sendall(data)
                     except Exception as exc:
                         logger.error("Endpoint data forwarding error")
-                        logger.error(type(exc) + "\n" + exc.args + "\n" + exc)
+                        logger.error(exc)
                         restart()
 
 # Close sockets to terminate connection

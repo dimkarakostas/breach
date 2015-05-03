@@ -53,6 +53,6 @@ SOCKET_BUFFER = 4096
 LOG_BUFFER = 16
 
 # Downgrade
-ATTEMPT_DOWNGRADE = True
+ATTEMPT_DOWNGRADE = False
 MAX_TLS_POSITION = 10 # Iceweasel's max tls version byte position in Client Hello message
 MAX_TLS_ALLOWED = 1

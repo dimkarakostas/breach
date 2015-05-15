@@ -3,16 +3,20 @@ import select
 import logging
 import constants
 import binascii
+from os import system
 
 # Logger setup
-logging.basicConfig(filename="breach.log") # Log in file
-# logging.basicConfig()
+#logging.basicConfig(filename="breach.log") # Log in file
+logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
+system("chmod 755 breach.log")
 
 # Counters for defragmentation
 past_bytes_user = 0 # Number of bytes expanding to future user packets
 past_bytes_endpoint = 0 # Number of bytes expanding to future endpoint packets
+chunked_user_header = None # TLS user header portion that gets stuck between packets
+chunked_endpoint_header = None # TLS endpoint header portion that gets stuck between packets
 
 # Print hexadecimal and ASCII representation of data
 def log_data(data):
@@ -35,33 +39,40 @@ def log_data(data):
     return "\n".join(output)
 
 # Parse data and print header information and payload
-def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
+def parse(data, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, is_response = False):
     lg = ["\n"]
     downgrade = False
-    
-    # Check if there are any remaining bytes from previous endpoint record
-    if past_bytes_endpoint:
-        if is_response:
+
+    # Check for defragmentation between packets
+    if is_response:
+        # Check if TLS record header was chunked between packets and append it to the beginning
+        if chunked_endpoint_header:
+            data = chunked_endpoint_header + data
+            chunked_endpoint_header = None
+        # Check if there are any remaining bytes from previous record
+        if past_bytes_endpoint:
             lg.append("Data from previous TLS record: Endpoint\n")
             if past_bytes_endpoint >= len(data):
                 lg.append(log_data(data))
                 lg.append("\n")
                 past_bytes_endpoint = past_bytes_endpoint - len(data)
-                return ("\n".join(lg), past_bytes_endpoint, past_bytes_user, downgrade)
+                return ("\n".join(lg), past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade)
             else:
                 lg.append(log_data(data[0:past_bytes_endpoint]))
                 lg.append("\n")
                 data = data[past_bytes_endpoint:]
                 past_bytes_endpoint = 0
-    # Same check for user record
-    if past_bytes_user:
-       if not is_response:
+    else:
+        if chunked_user_header:
+            data = chunked_user_header + data
+            chunked_user_header = None
+        if past_bytes_user:
            lg.append("Data from previous TLS record: User\n")
            if past_bytes_user >= len(data):
                lg.append(log_data(data))
                lg.append("\n")
                past_bytes_user = past_bytes_user - len(data)
-               return ("\n".join(lg), past_bytes_endpoint, past_bytes_user, downgrade)
+               return ("\n".join(lg), past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade)
            else:
                lg.append(log_data(data[0:past_bytes_user]))
                lg.append("\n")
@@ -73,13 +84,14 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
         version = (ord(data[constants.TLS_VERSION_MAJOR]), ord(data[constants.TLS_VERSION_MINOR]))
         length = 256*ord(data[constants.TLS_LENGTH_MAJOR]) + ord(data[constants.TLS_LENGTH_MINOR])
     except Exception as exc:
-        logger.error("Only %d remaining for next record, not enough for valid TLS header" % len(data))
+        logger.debug("Only %d remaining for next record, TLS header gets chunked" % len(data))
         logger.error(exc)
         if is_response:
-            return ("", 0, past_bytes_user, downgrade)
+            chunked_endpoint_header = data
         else:
-            return ("", past_bytes_endpoint, 0, downgrade)
- 
+            chunked_user_header = data
+        return ("", past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade)
+
     if is_response:
             if cont_type in constants.TLS_CONTENT:
                     print("Endpoint %s Length: %d" % (constants.TLS_CONTENT[cont_type], length))
@@ -114,7 +126,7 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
         lg.append("TLS Version: Uknown %d %d" % (version[0], version[1]))
     lg.append("TLS Payload Length: %d" % length)
     lg.append("(Remaining) Packet Data length: %d\n" % len(data))
-    
+
     # Check if TLS record spans to next TCP segment
     if len(data) - constants.TLS_HEADER_LENGTH < length:
         if is_response:
@@ -125,18 +137,20 @@ def parse(data, past_bytes_endpoint, past_bytes_user, is_response = False):
     lg.append(log_data(data[0:constants.TLS_HEADER_LENGTH]))
     lg.append(log_data(data[constants.TLS_HEADER_LENGTH:constants.TLS_HEADER_LENGTH+length]))
     lg.append("\n")
-    
-    # Check if packet has more than one TLS records
-    if length < len(data) - constants.TLS_HEADER_LENGTH and len(data[constants.TLS_HEADER_LENGTH+length:]) > 0:
-        more_records, past_bytes_endpoint, past_bytes_user, _ = parse(
-                                                                      data[constants.TLS_HEADER_LENGTH+length:], 
-                                                                      past_bytes_endpoint, 
-                                                                      past_bytes_user, 
-                                                                      is_response
-                                                                  )
-        lg.append(more_records)
 
-    return ("\n".join(lg), past_bytes_endpoint, past_bytes_user, downgrade)
+    # Check if packet has more than one TLS records
+    if length < len(data) - constants.TLS_HEADER_LENGTH:
+            more_records, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, _ = parse(
+                                                                                                                        data[constants.TLS_HEADER_LENGTH+length:],
+                                                                                                                        past_bytes_endpoint,
+                                                                                                                        past_bytes_user,
+                                                                                                                        chunked_endpoint_header,
+                                                                                                                        chunked_user_header,
+                                                                                                                        is_response
+                                                                                                                       )
+            lg.append(more_records)
+
+    return ("\n".join(lg), past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade)
 
 # Start sockets on user side (proxy as server) and endpoint side (proxy as client)
 def start():
@@ -192,9 +206,9 @@ start()
 logger.info("Starting main proxy loop")
 while 1:
     ready_to_read, ready_to_write, in_error = select.select(
-                                                            [user_connection, endpoint_socket], 
-                                                            [], 
-                                                            [], 
+                                                            [user_connection, endpoint_socket],
+                                                            [],
+                                                            [],
                                                             5
                                                            )
 
@@ -213,21 +227,23 @@ while 1:
                     restart()
             else:
                     print("User Packet Length: %d" % len(data))
-                    output, past_bytes_endpoint, past_bytes_user, downgrade = parse(
-                                                                                    data, 
-                                                                                    past_bytes_endpoint, 
-                                                                                    past_bytes_user 
-                                                                                   ) # ...parse it...
+                    output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade = parse(
+                                                                                                                                 data,
+                                                                                                                                 past_bytes_endpoint,
+                                                                                                                                 past_bytes_user,
+                                                                                                                                 chunked_endpoint_header,
+                                                                                                                                 chunked_user_header
+                                                                                                                                ) # ...parse it...
                     logger.debug(output)
                     try:
                         if downgrade and constants.ATTEMPT_DOWNGRADE:
                                 alert = 'HANDSHAKE_FAILURE'
-                                output, _, _, _ = parse(
-                                                    constants.ALERT_MESSAGES[alert],
-                                                    past_bytes_endpoint,
-                                                    past_bytes_user,
-                                                    True
-                                                   )
+                                output, _, _, _, _, _ = parse(
+                                                              constants.ALERT_MESSAGES[alert],
+                                                              past_bytes_endpoint,
+                                                              past_bytes_user,
+                                                              True
+                                                             )
                                 logger.debug("\n\n" + "Downgrade Attempt" + output)
                                 user_connection.sendall(constants.ALERT_MESSAGES[alert]) # if we are trying to downgrade, send fatal alert to user
                                 continue
@@ -252,12 +268,14 @@ while 1:
                     restart()
             else:
                     print("Endpoint Packet Length: %d" % len(data))
-                    output, past_bytes_endpoint, past_bytes_user, _ = parse(
-                                                                         data, 
-                                                                         past_bytes_endpoint, 
-                                                                         past_bytes_user,
-                                                                         True
-                                                                        )
+                    output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, _ = parse(
+                                                                                                                          data,
+                                                                                                                          past_bytes_endpoint,
+                                                                                                                          past_bytes_user,
+                                                                                                                          chunked_endpoint_header,
+                                                                                                                          chunked_user_header,
+                                                                                                                          True
+                                                                                                                         )
                     logger.debug(output)
                     try:
                         user_connection.sendall(data)

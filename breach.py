@@ -10,7 +10,7 @@ from os import system
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.ERROR)
-system("chmod 755 breach.log")
+system("chmod 777 breach.log")
 
 # Counters for defragmentation
 past_bytes_user = 0 # Number of bytes expanding to future user packets

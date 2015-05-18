@@ -5,7 +5,6 @@ import time
 import argparse
 
 def init(num, lowercase, uppercase, correct_val):
-    result_file.write("Correct value = %s\n\n" % correct_val)
     alphabet = []
     if num:
         for i in xrange(ord('0'), ord('9') + 1):
@@ -55,7 +54,7 @@ parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', he
 parser.add_argument('-lf', metavar = 'latest_file_number', required = True, type = int, help = 'Input the latest output file breach.py has created, -1 if first try')
 parser.add_argument('-r', metavar = 'request_length', required = True, type = int, help = 'Input the (mean payload) length of the request packet')
 parser.add_argument('-m', metavar = 'mean_length', required = True, type = int, help = 'Input the (observed mean payload) length value of the packet')
-parser.add_argument('-c', metavar = 'correct_value', required = True, help = 'Input the correct value we attack')
+parser.add_argument('-c', metavar = 'correct_value', help = 'Input the correct value we attack')
 parser.add_argument('-s', metavar = 'sampling', type = int, help = 'Input the sampling ratio')
 parser.add_argument('-t', metavar = 'refresh_time', type = int, help = 'Input the refresh time in seconds')
 args = parser.parse_args()
@@ -63,7 +62,9 @@ alphabet_type = args.a
 latest_file = args.lf
 request_length = args.r
 mean_length_large = args.m
-correct_val = args.c
+correct_val = None
+if args.c:
+    correct_val = args.c
 if args.s:
     sampling_ratio = args.s
 if args.t:
@@ -86,6 +87,9 @@ while 1:
     result_file = open("result.log", "w")
     alphabet = init(num, lowercase, uppercase, correct_val)
 
+    if correct_val:
+        result_file.write("Correct value = %s\n\n" % correct_val)
+    result_file.write("Combined output files\n\n")
     system('cp out.out out' + str(latest_file + 1))
     out_iterator = "0"
     with open("parsed_output.log", "w") as f:
@@ -105,11 +109,11 @@ while 1:
                     pref, size = line.split(": ")
                     '''
                     if pref == "User application payload" and int(size) > request_length - 5 and int(size) < request_length + 5:
-                            if (curr_request != prev_request):
-                                    buff.append("%d: -1\n" % prev_request)
-                                    prev_request = prev_request + 1
-                            curr_request = curr_request + 1
-                            continue
+                        if (curr_request != prev_request):
+                            buff.append("%d: -1\n" % prev_request)
+                            prev_request = prev_request + 1
+                        curr_request = curr_request + 1
+                        continue
                     '''
                     if (pref == "Endpoint application payload"):
                         if int(size) > mean_length_large - 10 and int(size) < mean_length_large + 10:
@@ -126,58 +130,66 @@ while 1:
     with open("parsed_output.log", "r") as f:
         alpha_counter = 0
         for parsed_line in f.readlines():
-                it, sz = parsed_line.split(": ")
-                if int(sz) == -2:
-                    alpha_counter = 0
-                    continue
-                if int(sz) > 0:
-                    output_sum[alphabet[alpha_counter]] = output_sum[alphabet[alpha_counter]] + int(sz)
-                    iterations[alphabet[alpha_counter]] = iterations[alphabet[alpha_counter]] + 1
-                alpha_counter = alpha_counter + 1
-                if alpha_counter > len(alphabet) - 1:
-                    alpha_counter = 0
-                    if iterations[alphabet[alpha_counter]] % sampling_ratio == 0:
-                        sample = create_dictionary(output_sum, iterations)
-                        sorted_sample = sort_dictionary_values(sample)
-                        samples[iterations[alphabet[alpha_counter]]] = sorted_sample
+            it, sz = parsed_line.split(": ")
+            if int(sz) == -2:
+                alpha_counter = 0
+                continue
+            if int(sz) > 0:
+                output_sum[alphabet[alpha_counter]] = output_sum[alphabet[alpha_counter]] + int(sz)
+                iterations[alphabet[alpha_counter]] = iterations[alphabet[alpha_counter]] + 1
+            alpha_counter = alpha_counter + 1
+            if alpha_counter > len(alphabet) - 1:
+                alpha_counter = 0
+                if correct_val and iterations[alphabet[alpha_counter]] % sampling_ratio == 0:
+                    sample = create_dictionary(output_sum, iterations)
+                    sorted_sample = sort_dictionary_values(sample)
+                    samples[iterations[alphabet[alpha_counter]]] = sorted_sample
     f.close()
 
-    result_file.write("\nCombined sorted results\n\n")
+    result_file.write("\nCombined sorted results\n")
 
     combined = create_dictionary(output_sum, iterations)
     combined_sorted = sort_dictionary_values(combined)
-    for v,k in combined_sorted:
-            result_file.write("%s: %f\n" % (k, v))
-    samples[iterations[alphabet[0]]] = combined_sorted
-    samples = sort_dictionary(samples)
-    result_file.write("\n")
-
-    found_in_iter = False
-    correct_leader = False
-    result_file.write("Iteration - Chart Position - Divergence from top - Mean Length\n\n")
-    for point in samples:
+    for symbol in enumerate(combined_sorted):
+        if symbol[0] % 6 == 0:
+            result_file.write('\n')
+        result_file.write("%s: %f\t" % (symbol[1][1], symbol[1][0]))
+    if correct_val:
+        samples[iterations[alphabet[0]]] = combined_sorted
+        samples = sort_dictionary(samples)
+        result_file.write("\n")
+        found_in_iter = False
+        correct_leader = False
+        result_file.write("\n")
+        result_file.write("Iteration - Chart Position - Divergence from top - Mean Length\n\n")
+        for point in samples:
             pos = 1
             for j in point[1]:
-                    if correct_leader:
-                            divergence = j[0] - correct_len
-                            correct_leader = False
-                    if j[1] == correct_val:
-                            correct_pos = pos
-                            correct_len = j[0]
-                            if pos == 1:
-                                    correct_leader = True
-                            else:
-                                    divergence = leader_len - j[0]
-                            found_in_iter = True
+                if correct_leader:
+                    divergence = j[0] - correct_len
+                    correct_leader = False
+                if j[1] == correct_val:
+                    correct_pos = pos
+                    correct_len = j[0]
+                    if pos == 1:
+                        correct_leader = True
                     else:
-                            if pos == 1:
-                                    leader_len = j[0]
-                            pos = pos + 1
+                        divergence = leader_len - j[0]
+                    found_in_iter = True
+                else:
+                    if pos == 1:
+                        leader_len = j[0]
+                    pos = pos + 1
             if not found_in_iter:
                 result_file.write("%d:\t%d\t%d\t%d\n" % (0, 0, 0, 0))
             else:
                 result_file.write("%d:\t\t%d\t\t%f\t\t%f\n" % (point[0], correct_pos, divergence, correct_len))
-    result_file.write("\n")
+        result_file.write("\n")
+    else:
+        result_file.write("\n\n")
+        result_file.write("Iteration: %d\n" % iterations[alphabet[0]])
+        result_file.write("Correct Value is %s with divergence %f\n\n" % (combined_sorted[0][1], combined_sorted[1][0] - combined_sorted[0][0]))
+
     result_file.close()
     system("cat result.log")
     time.sleep(refresh_time)

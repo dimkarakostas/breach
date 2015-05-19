@@ -1,5 +1,5 @@
 from __future__ import division
-from os import system
+from os import system, path
 import datetime
 import time
 import argparse
@@ -46,27 +46,30 @@ num = False
 lowercase = False
 uppercase = False
 buff = []
-sampling_ratio = 20
-refresh_time = 60
 
 parser = argparse.ArgumentParser(description='Parser of breach.py output')
-parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type (in that order): n => digits, l => lowercase letters, u => uppercase letters')
-parser.add_argument('-lf', metavar = 'latest_file_number', required = True, type = int, help = 'Input the latest output file breach.py has created, -1 if first try')
-parser.add_argument('-r', metavar = 'request_length', required = True, type = int, help = 'Input the (mean payload) length of the request packet')
+parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type (careful to use correct request order): n => digits, l => lowercase letters, u => uppercase letters')
 parser.add_argument('-m', metavar = 'mean_length', required = True, type = int, help = 'Input the (observed mean payload) length value of the packet')
+parser.add_argument('-lf', metavar = 'latest_file_number', type = int, help = 'Input the latest output file breach.py has created, -1 if first try')
+parser.add_argument('-r', metavar = 'request_length', type = int, help = 'Input the (mean payload) length of the request packet')
 parser.add_argument('-c', metavar = 'correct_value', help = 'Input the correct value we attack')
 parser.add_argument('-s', metavar = 'sampling', type = int, help = 'Input the sampling ratio')
 parser.add_argument('-t', metavar = 'refresh_time', type = int, help = 'Input the refresh time in seconds')
 args = parser.parse_args()
 alphabet_type = args.a
-latest_file = args.lf
-request_length = args.r
 mean_length_large = args.m
+latest_file = -1
+if args.lf:
+    latest_file = args.lf
+if args.r:
+    request_length = args.r
 correct_val = None
 if args.c:
     correct_val = args.c
+sampling_ratio = 20
 if args.s:
     sampling_ratio = args.s
+refresh_time = 60
 if args.t:
     refresh_time = args.t
 
@@ -77,6 +80,10 @@ if 'l' in alphabet_type:
 if 'u' in alphabet_type:
     uppercase = True
 assert num or lowercase or uppercase, 'Invalid alphabet type'
+
+if path.isfile('out' + str(latest_file + 1)):
+    raw = raw_input("Are you sure you want to overwrite file 'out" + str(latest_file + 1) + "'? ")
+    assert raw == 'y' or raw == 'yes', "Aborted by user input"
 
 while 1:
     iterations = {}
@@ -188,7 +195,7 @@ while 1:
     else:
         result_file.write("\n\n")
         result_file.write("Iteration: %d\n" % iterations[alphabet[0]])
-        result_file.write("Correct Value is %s with divergence %f\n\n" % (combined_sorted[0][1], combined_sorted[1][0] - combined_sorted[0][0]))
+        result_file.write("Correct Value is '%s' with divergence %f from second best\n\n" % (combined_sorted[0][1], combined_sorted[1][0] - combined_sorted[0][0]))
 
     result_file.close()
     system("cat result.log")

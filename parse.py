@@ -48,11 +48,6 @@ def sort_dictionary(in_dict):
     sorted_dict.sort(reverse=False)
     return sorted_dict
 
-num = False
-lowercase = False
-uppercase = False
-buff = []
-
 parser = argparse.ArgumentParser(description='Parser of breach.py output')
 parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type (careful to use correct request order): n => digits, l => lowercase letters, u => uppercase letters, d => - and _')
 parser.add_argument('-m', metavar = 'mean_length', required = True, type = int, help = 'Input the (observed mean payload) length value of the packet')
@@ -62,6 +57,10 @@ parser.add_argument('-c', metavar = 'correct_value', help = 'Input the correct v
 parser.add_argument('-s', metavar = 'sampling', type = int, help = 'Input the sampling ratio')
 parser.add_argument('-t', metavar = 'refresh_time', type = int, help = 'Input the refresh time in seconds')
 args = parser.parse_args()
+num = False
+lowercase = False
+uppercase = False
+dashes = False
 alphabet_type = args.a
 mean_length_large = args.m
 latest_file = -1

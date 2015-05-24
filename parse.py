@@ -57,28 +57,14 @@ parser.add_argument('-c', metavar = 'correct_value', help = 'Input the correct v
 parser.add_argument('-s', metavar = 'sampling', type = int, help = 'Input the sampling ratio')
 parser.add_argument('-t', metavar = 'refresh_time', type = int, help = 'Input the refresh time in seconds')
 args = parser.parse_args()
+
+alphabet_type = args.a
+mean_length_large = args.m
+
 num = False
 lowercase = False
 uppercase = False
 dashes = False
-alphabet_type = args.a
-mean_length_large = args.m
-latest_file = -1
-if args.lf:
-    latest_file = args.lf
-minimum_request_length = None
-if args.r:
-    minimum_request_length = args.r
-correct_val = None
-if args.c:
-    correct_val = args.c
-sampling_ratio = 20
-if args.s:
-    sampling_ratio = args.s
-refresh_time = 60
-if args.t:
-    refresh_time = args.t
-
 if 'n' in alphabet_type:
     num = True
 if 'l' in alphabet_type:
@@ -89,9 +75,28 @@ if 'd' in alphabet_type:
     dashes = True
 assert num or lowercase or uppercase or dashes, 'Invalid alphabet type'
 
+latest_file = -1
+if args.lf >= 0:
+    latest_file = args.lf
 if path.isfile('out' + str(latest_file + 1)):
     raw = raw_input("Are you sure you want to overwrite file 'out" + str(latest_file + 1) + "'? ")
     assert raw == 'y' or raw == 'yes', "Aborted by user input"
+
+minimum_request_length = None
+if args.r:
+    minimum_request_length = args.r
+
+correct_val = None
+if args.c:
+    correct_val = args.c
+
+sampling_ratio = 20
+if args.s:
+    sampling_ratio = args.s
+
+refresh_time = 60
+if args.t:
+    refresh_time = args.t
 
 while 1:
     iterations = {}
@@ -116,6 +121,9 @@ while 1:
                 prev_request = 0
                 curr_request = 0
                 buff = []
+                request_buff = []
+                found_first_req = False
+                found_response_packet = False
                 for line in output_file.readlines():
                     if prev_request % len(combined) == 0:
                         for r in buff:
@@ -124,16 +132,33 @@ while 1:
                     pref, size = line.split(": ")
                     if minimum_request_length:
                         if pref == "User application payload" and int(size) > minimum_request_length:
-                            if (curr_request != prev_request):
+                            if not found_first_req:
+                                found_first_req = True
+                                request_buff = []
+                                continue
+                            for packet in request_buff:
+                                pref, size = packet.split(": ")
+                                if (pref == "Endpoint application payload"):
+                                    if int(size) > mean_length_large - 10 and int(size) < mean_length_large + 10:
+                                        summary = int(size)
+                                        buff.append("%d: %d\n" % (prev_request, summary))
+                                        prev_request = prev_request + 1
+                                        found_response_packet = True
+                            if found_response_packet:
+                                found_response_packet = False
+                            else:
                                 buff.append("%d: -1\n" % prev_request)
                                 prev_request = prev_request + 1
-                            curr_request = curr_request + 1
-                            continue
-                    if (pref == "Endpoint application payload"):
-                        if int(size) > mean_length_large - 10 and int(size) < mean_length_large + 10:
-                            summary = int(size)
-                            buff.append("%d: %d\n" % (prev_request, summary))
-                            prev_request = prev_request + 1
+                            request_buff = []
+                        else:
+                            request_buff.append(line.strip())
+                    else:
+                        if (pref == "Endpoint application payload"):
+                            if int(size) > mean_length_large - 10 and int(size) < mean_length_large + 10:
+                                summary = int(size)
+                                buff.append("%d: %d\n" % (prev_request, summary))
+                                prev_request = prev_request + 1
+
                 output_file.close()
                 out_iterator = str(int(out_iterator) + 1)
                 f.write("-1: -2\n")

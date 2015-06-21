@@ -234,7 +234,7 @@ while 1:
                 else:
                     if pos == 1:
                         leader_len = j[0]
-                if pos in point_system:
+                if pos in point_system and sample[0]:
                     points[j[1]] = points[j[1]] + point_system[pos]
                 pos = pos + 1
             if sample[0] % sampling_ratio == 0 or sample[0] > len(samples) - 10:
@@ -265,6 +265,7 @@ while 1:
         if symbol[0] % 10 == 0:
             result_file.write('\n')
         result_file.write("%s %d\t" % (symbol[1][1], symbol[1][0]))
+    result_file.write('\n')
     result_file.close()
     system("cat result.log")
     time.sleep(refresh_time)

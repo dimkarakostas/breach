@@ -7,7 +7,7 @@ function makeRequest(iterator = 0, total = 0) {
 		request = "https://touch.facebook.com/messages/?q=" + search;
 		var img = new Image();
 		img.src = request;
-		iterator = iterator > alphabet.length - 1 ? 0 : ++iterator;
+		iterator = iterator >= alphabet.length - 1 ? 0 : ++iterator;
 		console.log("making request %d: %s", total++, request);
 	});
 	setTimeout(function() {

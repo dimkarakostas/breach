@@ -7,7 +7,9 @@ import constants
 import hillclimbing
 
 def initialize():
-    # Initialize logger
+    '''
+    Initialize logger
+    '''
     global logger
     #logging.basicConfig(filename="breach.log") # Log in file
     logging.basicConfig()
@@ -315,22 +317,21 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Create hillclimbing parameters file')
     parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type (careful to use correct request order): n => digits, l => lowercase letters, u => uppercase letters, d => - and _')
     parser.add_argument('-p', '--prefix', metavar = 'bootstrap_prefix', required = True, help = 'Input the already known prefix needed for bootstrap')
+    parser.add_argument('-m', '--method', metavar = 'request_method', help = 'Choose the request method: s => serial, p => parallel')
     parser.add_argument('--wdir', metavar = 'web_application_directory', help = 'The directory where you have added evil.js')
     args = parser.parse_args()
     alpha_types = args.a
     prefix = args.prefix
-    if args.wdir:
-        wdir = args.wdir
-    else:
-        wdir = '/var/www/breach'
-    return alpha_types, prefix, wdir
+    method = args.method if args.method else 's'
+    wdir = args.wdir if args.wdir else '/var/www/breach'
+    return alpha_types, prefix, method, wdir
 
 if __name__ == "__main__":
     import argparse
 
     initialize()
-    alpha_types, prefix, wdir = parse_args()
-    hillclimbing.create_request_file(alpha_types, prefix)
-    system("sudo cp request.txt " + wdir)
+    alpha_types, prefix, method, wdir = parse_args()
+    hillclimbing.create_request_file(alpha_types, prefix, method)
+    system("cp request.txt " + wdir)
     logger.info("Hillclimbing parameters file created")
     execute_breach()

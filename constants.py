@@ -45,7 +45,8 @@ ALERT_MESSAGES = {
 # Ports and nodes
 USER = "" # Listen requests from everyone
 USER_PORT = 443
-ENDPOINT = "31.13.93.3" # Connect only to selected endpoint
+#ENDPOINT = "31.13.93.3" # touch.facebook.com
+ENDPOINT = "216.58.208.101" # mail.google.com
 ENDPOINT_PORT = 443
 
 # Buffers

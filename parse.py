@@ -274,7 +274,7 @@ def parse_input(args_dict):
         system("rm parsed_output.log")
         time.sleep(refresh_time)
         if iterations[alphabet[0]] >= args_dict['iterations']:
-            system('cp out_' + filename + ' history_out_' + filename
+            system('cp out_' + filename + ' history_out_' + filename)
             if len(correct_alphabet) == 1:
                 args_dict['prefix'] = args_dict['prefix'] + correct_alphabet[0]
                 args_dict['alphabet']= get_alphabet({'alpha_types': args_dict['alpha_types'], 'prefix': args_dict['prefix'], 'method': args_dict['method']})

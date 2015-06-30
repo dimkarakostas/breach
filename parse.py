@@ -1,5 +1,5 @@
 from __future__ import division
-from os import system, path
+from os import system, path, getpid
 import datetime
 import time
 import argparse
@@ -67,7 +67,7 @@ def continue_parallel_division(args_dict, correct_alphabet):
 def parse_input(args_dict):
     system("cp request.txt " + args_dict['wdir'])
     time.sleep(5)
-    system('rm -f out*')
+    system('rm -f out.out')
 
     alpha_types = args_dict['alpha_types']
     alphabet = args_dict['alphabet']
@@ -89,6 +89,7 @@ def parse_input(args_dict):
             correct_val = None
     point_system = point_system_parallel if method == 'p' else point_system_serial
     filename = '_'.join(alpha_types) + '_' + prefix
+    checkpoint = args_dict['iterations']/2
     while 1:
         iterations, output_sum = init_temp_objects(alphabet)
         samples = {}
@@ -96,6 +97,8 @@ def parse_input(args_dict):
         for key, value in iterations.items():
             points[key] = 0
 
+        system('mv out_' + filename + '_0 ' + args_dict['history_folder'] + 'history_out_' + filename + '_' + str(args_dict['divide_and_conquer']))
+        system('mv result_' + filename + ' ' + args_dict['history_folder'] + 'history_result_' + filename + '_' + str(args_dict['divide_and_conquer']))
         result_file = open("result_" + filename, "w")
         if correct_val:
             result_file.write("Correct value = %s\n\n" % correct_val)
@@ -254,31 +257,42 @@ def parse_input(args_dict):
                 if symbol[0] % 6 == 0:
                     result_file.write('\n')
                 result_file.write("%s %f\t" % (symbol[1][1], symbol[1][0]))
-        elif method == 'p':
-            for symbol in enumerate(combined_sorted):
-                if symbol[0] == 0: # TODO: Better calculation of correct alphabet
-                    correct_alphabet = symbol[1][1].split(prefix)
-                    correct_alphabet.pop(0)
-                    for i in enumerate(correct_alphabet):
-                        correct_alphabet[i[0]] = i[1].split()[0]
-                result_file.write("%s \nLength: %f\nPoints: %d\n\n" % (symbol[1][1], symbol[1][0], points[symbol[1][1]]))
-        if method == 's':
             result_file.write("\n")
             for symbol in enumerate(points):
                 if symbol[0] % 10 == 0:
                     result_file.write('\n')
                 result_file.write("%s %d\t" % (symbol[1], symbol[0]))
+        elif method == 'p':
+            for symbol in enumerate(combined_sorted):
+                '''
+                if symbol[0] == 0: # TODO: Better calculation of correct alphabet
+                    correct_alphabet = symbol[1][1].split(prefix)
+                    correct_alphabet.pop(0)
+                    for i in enumerate(correct_alphabet):
+                        correct_alphabet[i[0]] = i[1].split()[0]
+                '''
+                result_file.write("%s \nLength: %f\nPoints: %d\n\n" % (symbol[1][1], symbol[1][0], points[symbol[1][1]]))
         result_file.write('\n')
         result_file.close()
         system("cat result_" + filename)
         system("rm parsed_output.log")
         time.sleep(refresh_time)
-        if iterations[alphabet[0]] >= args_dict['iterations']:
-            system('cp out_' + filename + ' history_out_' + filename)
+        points = sort_dictionary_values(points, True)
+        if method == 'p' and points[0][0] > checkpoint:
+            if points[0][0] - points[1][0] < args_dict['iterations']/10:
+                checkpoint = checkpoint + args_dict['iterations']/2
+                print("Not enough data for safe conclusion yet. Next checkpoint of points: %d" % checkpoint)
+                continue
             if len(correct_alphabet) == 1:
                 args_dict['prefix'] = args_dict['prefix'] + correct_alphabet[0]
+                args_dict['divide_and_conquer'] = 0
                 args_dict['alphabet']= get_alphabet({'alpha_types': args_dict['alpha_types'], 'prefix': args_dict['prefix'], 'method': args_dict['method']})
             else:
+                args_dict['divide_and_conquer'] = args_dict['divide_and_conquer'] + 1
+                correct_alphabet = points[0][1].split(prefix)
+                correct_alphabet.pop(0)
+                for i in enumerate(correct_alphabet):
+                    correct_alphabet[i[0]] = i[1].split()[0]
                 args_dict['alphabet'] = continue_parallel_division(args_dict, correct_alphabet)
             parse_input(args_dict)
             break
@@ -319,12 +333,16 @@ def parse_args():
     if path.isfile('out_' + '_'.join(args_dict['alpha_types']) + '_' + args_dict['prefix'] + '_' + str(args_dict['latest_file'] + 1)):
         raw = raw_input("Are you sure you want to overwrite file " + 'out_' + '_'.join(args_dict['alpha_types']) + '_' + args_dict['prefix'] + '_' + str(args_dict['latest_file'] + 1) + "'? ")
         assert raw == 'y' or raw == 'yes', "Aborted by user input"
+    args_dict['divide_and_conquer'] = 0
     return args_dict
 
 if __name__ == "__main__":
     initialize()
     args_dict = parse_args()
+    args_dict['history_folder'] = 'history_' + '_'.join(args_dict['alpha_types']) + '_' + args_dict['method'] + '_' + str(getpid()) + '/'
+    system('mkdir ' + args_dict['history_folder'])
     if args_dict['execute_breach']:
         # NOTE: Run breach.py on background. Don't forget to kill it after you close parse.py!
         system('sudo python breach.py --silent -a ' + ' '.join(args_dict['alpha_types']) + ' -p '+ args_dict['prefix'] + ' -m ' + args_dict['method'] + ' --wdir ' + args_dict['wdir'] + ' &')
+
     parse_input(args_dict)

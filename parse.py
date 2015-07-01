@@ -4,6 +4,17 @@ import datetime
 import time
 import argparse
 import breach
+import signal
+from sys import exit
+
+def signal_handler(signal, frame):
+    '''
+    Signal handler for killing.
+    '''
+    print('Exiting the program per your command')
+    system('rm -f out* result* request* *.pyc')
+    exit(0)
+signal.signal(signal.SIGINT, signal_handler)
 
 def initialize():
     '''
@@ -89,7 +100,7 @@ def parse_input(args_dict):
             correct_val = None
     point_system = point_system_parallel if method == 'p' else point_system_serial
     filename = '_'.join(alpha_types) + '_' + prefix
-    checkpoint = args_dict['iterations']/2
+    checkpoint = args_dict['iterations']
     while 1:
         iterations, output_sum = init_temp_objects(alphabet)
         samples = {}
@@ -169,7 +180,6 @@ def parse_input(args_dict):
                     out_iterator = str(int(out_iterator) + 1)
                     f.write("-1: -2\n")
                 except Exception as e:
-                    #print e
                     break
 
         total_requests = total_requests / len(alphabet)
@@ -241,11 +251,11 @@ def parse_input(args_dict):
             points = sort_dictionary_values(points, True)
             result_file.write("\n")
         else:
-            for sample in samples:
-                for j in enumerate(sample[1]):
-                    if j[0] in point_system and sample[0]:
-                        if iterations[alphabet[0]] > args_dict['iterations']/2:
-                            points[j[1][1]] = points[j[1][1]] + 2 * point_system[j[0]]
+            for sample in enumerate(samples):
+                for j in enumerate(sample[1][1]):
+                    if j[0] in point_system and sample[1][0]:
+                        if sample[0] > args_dict['iterations']/2:
+                            points[j[1][1]] = points[j[1][1]] + (2 * point_system[j[0]])
                         else:
                             points[j[1][1]] = points[j[1][1]] + point_system[j[0]]
             result_file.write("\n")
@@ -264,25 +274,29 @@ def parse_input(args_dict):
                 result_file.write("%s %d\t" % (symbol[1], symbol[0]))
         elif method == 'p':
             for symbol in enumerate(combined_sorted):
-                '''
                 if symbol[0] == 0: # TODO: Better calculation of correct alphabet
                     correct_alphabet = symbol[1][1].split(prefix)
                     correct_alphabet.pop(0)
                     for i in enumerate(correct_alphabet):
                         correct_alphabet[i[0]] = i[1].split()[0]
-                '''
                 result_file.write("%s \nLength: %f\nPoints: %d\n\n" % (symbol[1][1], symbol[1][0], points[symbol[1][1]]))
         result_file.write('\n')
         result_file.close()
         system("cat result_" + filename)
         system("rm parsed_output.log")
         time.sleep(refresh_time)
-        points = sort_dictionary_values(points, True)
-        if method == 'p' and points[0][0] > checkpoint:
-            if points[0][0] - points[1][0] < args_dict['iterations']/10:
-                checkpoint = checkpoint + args_dict['iterations']/2
-                print("Not enough data for safe conclusion yet. Next checkpoint of points: %d" % checkpoint)
+        if method == 'p' and iterations[alphabet[0]] > checkpoint:
+            points = sort_dictionary_values(points, True)
+            '''
+            if checkpoint == 2*args_dict['iterations']/3 and (points[0][0] - points[1][0] > args_dict['iterations']/4 or combined_sorted[1][0] - combined_sorted[0][0] > 5):
+                print("Restarting due to biased run")
+                parse_input(args_dict)
+                break
+            if points[0][0] - points[1][0] < args_dict['iterations']/20:
+                checkpoint = checkpoint + args_dict['iterations']/3
+                print("Not enough data for safe conclusion yet. Next checkpoint: %d" % checkpoint)
                 continue
+            '''
             if len(correct_alphabet) == 1:
                 args_dict['prefix'] = args_dict['prefix'] + correct_alphabet[0]
                 args_dict['divide_and_conquer'] = 0

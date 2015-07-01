@@ -2,7 +2,8 @@ import socket
 import select
 import logging
 import binascii
-from os import system
+from os import system, path
+from sys import exit
 import constants
 import hillclimbing
 
@@ -11,11 +12,11 @@ def initialize():
     Initialize logger
     '''
     global logger
-    #logging.basicConfig(filename="breach.log") # Log in file
-    logging.basicConfig()
+    logging.basicConfig(filename="breach.log") # Log in file
+    #logging.basicConfig()
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.ERROR)
-    if logger.getEffectiveLevel() != logging.ERROR:
+    if path.isfile('breach.log'):
         system("chmod 777 breach.log")
 
 def log_data(data):
@@ -166,12 +167,15 @@ def start():
     '''
     logger.info("Starting Proxy")
 
-    user_setup()
-    endpoint_setup()
+    try:
+        user_setup()
+        endpoint_setup()
+    except:
+        pass
 
     logger.info("Proxy is set up")
 
-def restart():
+def restart(attempt_counter = 0):
     '''
     Restart sockets in case of error.
     '''
@@ -183,18 +187,30 @@ def restart():
     except:
         pass
 
-    user_setup()
-    endpoint_setup()
+    try:
+        user_setup()
+        endpoint_setup()
+    except:
+        if attempt_counter < 3:
+            logger.error("Reattempting restart")
+            restart(attempt_counter+1)
+        else:
+            logger.error("Multiple failed attempts to restart")
+            exit(2)
 
     logger.info("Proxy has restarted")
 
-def stop():
+def stop(exit_code = 0):
     '''
     Shutdown sockets and terminate connection.
     '''
-    user_connection.close()
-    endpoint_socket.close()
+    try:
+        user_connection.close()
+        endpoint_socket.close()
+    except:
+        pass
     logger.info("Connection closed")
+    exit(exit_code)
 
 def user_setup():
     '''
@@ -253,7 +269,7 @@ def execute_breach():
                 except Exception as exc:
                     logger.error("User connection error")
                     logger.error(exc)
-                    restart()
+                    stop(1)
 
                 if len(data) == 0:
                         logger.info("User connection closed")
@@ -285,7 +301,7 @@ def execute_breach():
                         except Exception as exc:
                             logger.error("User data forwarding error")
                             logger.error(exc)
-                            restart()
+                            stop(1)
 
         if endpoint_socket in ready_to_read: # Same for the endpoint side
                 data = ""
@@ -295,11 +311,11 @@ def execute_breach():
                 except Exception as exc:
                     logger.error("Endpoint connection error")
                     logger.error(exc)
-                    restart()
+                    stop(1)
 
                 if len(data) == 0:
                         logger.info("Endpoint connection closed")
-                        restart()
+                        stop(1)
                 else:
                         if not args_dict['silent']:
                             print("Endpoint Packet Length: %d" % len(data))
@@ -317,7 +333,7 @@ def execute_breach():
                         except Exception as exc:
                             logger.error("Endpoint data forwarding error")
                             logger.error(exc)
-                            restart()
+                            stop(1)
 
 def parse_args():
     '''

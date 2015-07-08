@@ -84,8 +84,8 @@ def create_request_file(request_args):
     prefix = request_args['prefix']
     method = request_args['method']
     search_alphabet = request_args['alphabet'] if 'alphabet' in request_args else create_alphabet(request_args['alpha_types'])
-    with open("request.txt", "w") as f:
-        f.write(prefix + "\n")
+    with open('request.txt', 'w') as f:
+        f.write(prefix + '\n')
         total_tests = []
         alphabet = method_functions[method](search_alphabet, prefix)
         for test in alphabet:
@@ -110,7 +110,7 @@ def parse_args():
     method = args.method if args.method else 's'
     return alpha_types, prefix, method
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import argparse
 
     alpha_types, prefix, method = parse_args()

@@ -7,7 +7,7 @@ function compare_arrays(array_1 = [], array_2 = []) {
     return true;
 }
 
-function makeRequest(iterator = 0, total = 0, alphabet = [], ref = "", timeout = 3000) {
+function makeRequest(iterator = 0, total = 0, alphabet = [], ref = "", timeout = 4000) {
     jQuery.get("request.txt").done(function(data) {
         var input = data.split('\n');
         var new_ref = input[0];
@@ -15,7 +15,7 @@ function makeRequest(iterator = 0, total = 0, alphabet = [], ref = "", timeout =
         if (!compare_arrays(alphabet, new_alphabet) || ref != new_ref) {
                 setTimeout(function() {
                         makeRequest(0, total, new_alphabet, new_ref);
-                }, 5000);
+                }, 10000);
                 return;
         }
         var search = alphabet[iterator];

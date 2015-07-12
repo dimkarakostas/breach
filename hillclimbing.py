@@ -1,3 +1,6 @@
+import sys
+import user_input
+
 def initialize():
     '''
     Initialize global variables.
@@ -76,14 +79,14 @@ def parallel_execution(alphabet, prefix):
     reflection_alphabet = [head, tail]
     return [first_huffman + head, second_huffman + tail]
 
-def create_request_file(request_args):
+def create_request_file(args_dict):
     '''
     Create the 'request' file used by evil.js to issue the requests.
     '''
     initialize();
-    prefix = request_args['prefix']
-    method = request_args['method']
-    search_alphabet = request_args['alphabet'] if 'alphabet' in request_args else create_alphabet(request_args['alpha_types'])
+    prefix = args_dict['prefix']
+    method = args_dict['method']
+    search_alphabet = args_dict['alphabet'] if 'alphabet' in args_dict else create_alphabet(args_dict['alpha_types'])
     with open('request.txt', 'w') as f:
         f.write(prefix + '\n')
         total_tests = []
@@ -96,22 +99,6 @@ def create_request_file(request_args):
         f.close()
     return reflection_alphabet
 
-def parse_args():
-    '''
-    Parse console arguments for standalone use.
-    '''
-    parser = argparse.ArgumentParser(description='Create hillclimbing parameters file')
-    parser.add_argument('-a', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet types: n => digits, l => lowercase letters, u => uppercase letters, d => - and _')
-    parser.add_argument('-p', '--prefix', metavar = 'bootstrap_prefix', required = True, help = 'Input the already known prefix needed for bootstrap')
-    parser.add_argument('-m', '--method', metavar = 'request_method', help = 'Choose the request method: s => serial, p => parallel')
-    args = parser.parse_args()
-    alpha_types = args.a
-    prefix = args.prefix
-    method = args.method if args.method else 's'
-    return alpha_types, prefix, method
-
 if __name__ == '__main__':
-    import argparse
-
-    alpha_types, prefix, method = parse_args()
-    create_request_file(alpha_types, prefix, method)
+    args_dict = user_input.get_arguments_dict(sys.argv)
+    create_request_file(args_dict)

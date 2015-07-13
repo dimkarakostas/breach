@@ -50,20 +50,24 @@ class Parser():
         self.history_folder = args_dict['history_folder'] if 'history_folder' in args_dict else 'history/'
         self.latest_file = 0
         self.point_system = constants.POINT_SYSTEM_MAPPING[args_dict['method']]
-        if 'attack_logger' in args_dict:
+        if 'attack_logger' not in args_dict:
             if self.verbose < 1:
                 self.setup_logger('attack_logger', 'attack.log', logging.ERROR)
             else:
                 self.setup_logger('attack_logger', 'attack.log')
-        if not 'debug_logger' in args_dict:
+            self.attack_logger = logging.getLogger('attack_logger')
+            self.args_dict['attack_logger'] = self.attack_logger
+        else:
+            self.attack_logger = args_dict['attack_logger']
+        if 'debug_logger' not in args_dict:
             if self.verbose < 2:
                 self.setup_logger('debug_logger', 'debug.log', logging.ERROR)
             else:
                 self.setup_logger('debug_logger', 'debug.log')
-        self.debug_logger = logging.getLogger('debug_logger')
-        self.args_dict['debug_logger'] = self.debug_logger
-        self.attack_logger = logging.getLogger('attack_logger')
-        self.args_dict['attack_logger'] = self.attack_logger
+            self.debug_logger = logging.getLogger('debug_logger')
+            self.args_dict['debug_logger'] = self.debug_logger
+        else:
+            self.debug_logger = args_dict['debug_logger']
         system('mkdir ' + self.history_folder)
         return
 
@@ -149,12 +153,14 @@ class Parser():
                 response_length = 0
                 in_bracket = True
                 after_start = False
-                illegal_iteration = False
+                illegal_request = False
                 illegal_next_response = False
+                illegal_iteration = False
                 for line in output_file.readlines():
                     if prev_request and prev_request % len(self.alphabet) == 0:
                         if illegal_iteration:
-                            self.debug_logger.debug('Found illegal iteration %f' % float(total_requests/len(self.alphabet)))
+                            if not float(total_requests/len(self.alphabet)) in self.args_dict['illegal_iterations']:
+                                self.args_dict['illegal_iterations'].append(float(total_requests/len(self.alphabet)))
                             illegal_iteration = False
                         else:
                             for r in buff:
@@ -172,22 +178,24 @@ class Parser():
                             continue
                         else:
                             if pref == 'User application payload' and int(size) > self.minimum_request_length:
+                                if response_length == 0:
+                                    illegal_request = True
+                                    illegal_next_response = True
                                 if in_bracket:
-                                    if response_length == 0:
-                                        buff.append('%d: %d' % (prev_request, response_length))
+                                    if illegal_request:
+                                        buff.append('%d: 0' % prev_request)
                                         illegal_iteration = True
-                                        illegal_next_response = True
+                                        illegal_request = False
+                                    elif illegal_next_response:
+                                        buff.append('%d: 0' % prev_request)
+                                        illegal_iteration = True
+                                        illegal_next_response = False
                                     else:
-                                        if illegal_next_response:
-                                            buff.append('%d: 0' % prev_request)
-                                            illegal_iteration = True
-                                            illegal_next_response = False
-                                        else:
-                                            buff.append('%d: %d' % (prev_request, response_length))
-                                            response_length = 0
+                                        buff.append('%d: %d' % (prev_request, response_length))
                                     prev_request = prev_request + 1
+                                response_length = 0
                                 in_bracket = not in_bracket
-                            if pref == 'Endpoint application payload' and in_bracket:
+                            if pref == 'Endpoint application payload':
                                 response_length = response_length + int(size)
                     else:
                         if (pref == 'Endpoint application payload'):
@@ -363,10 +371,10 @@ class Parser():
             self.args_dict['prefix'] = self.prefix + points[0][1].split()[0]
             self.args_dict['divide_and_conquer'] = 0
             self.args_dict['alphabet']= self.get_alphabet({'alpha_types': self.alpha_types, 'prefix': self.prefix, 'method': self.method})
-            self.attack_logger.debug('SUCCESS: %s\n' % correct_alphabet[0])
-            self.attack_logger.debug('Total time till now: %s\n' % str(datetime.datetime.now() - self.start_time))
-            self.attack_logger.debug('----------Continuing----------\n')
-            self.attack_logger.debug('Alphabet: %s\n' % str(self.alphabet))
+            self.attack_logger.debug('SUCCESS: %s' % correct_alphabet[0])
+            self.attack_logger.debug('Total time till now: %s' % str(datetime.datetime.now() - self.start_time))
+            self.attack_logger.debug('----------Continuing----------')
+            self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
             self.continue_attack = True
         else:
             self.args_dict['divide_and_conquer'] = self.divide_and_conquer + 1
@@ -377,7 +385,7 @@ class Parser():
             self.args_dict['alphabet'] = self.continue_parallel_division(correct_alphabet)
             self.continue_next_hop = True
             self.attack_logger.debug('Correct Alphabet: %d Incorrect Alphabet: %d' % (points[0][0], points[1][0]))
-            self.attack_logger.debug('Alphabet: %s\n' % str(self.alphabet))
+            self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
         self.args_dict['latest_file'] = 0
         return
 
@@ -395,9 +403,9 @@ class Parser():
 
         if self.execute_breach:
             if 'connector' not in self.args_dict or not self.args_dict['connector'].isAlive():
-                self.debug_logger.debug('Is connector in args_dict? %s\n' % str('connector' in self.args_dict))
+                self.debug_logger.debug('Is connector in args_dict? %s' % str('connector' in self.args_dict))
                 if 'connector' in self.args_dict:
-                    self.debug_logger.debug('Is connector alive? %s\n' % str(self.args_dict['connector'].isAlive()))
+                    self.debug_logger.debug('Is connector alive? %s' % str(self.args_dict['connector'].isAlive()))
                 self.connector = ConnectorThread(self.args_dict)
                 self.connector.start()
                 self.args_dict['connector'] = self.connector
@@ -426,7 +434,7 @@ class Parser():
         Execute loop to parse output in real time.
         '''
         self.prepare_parsing()
-        self.debug_logger.debug('Starting loop with args_dict: %s\n' % str(self.args_dict))
+        self.debug_logger.debug('Starting loop with args_dict: %s' % str(self.args_dict))
         while self.connector.isAlive() if self.execute_breach else True:
             points = {}
             for i in self.alphabet:
@@ -465,13 +473,14 @@ class ConnectorThread(threading.Thread):
         super(ConnectorThread, self).__init__()
         self.args_dict = args_dict
         self.daemon = True
-        self.args_dict['debug_logger'].debug('Initialized breach thread\n')
+        self.debug_logger = args_dict['debug_logger']
+        self.debug_logger.debug('Initialized breach thread')
 
     def run(self):
         self.connector = connect.Connector(self.args_dict)
-        self.args_dict['debug_logger'].debug('Created breach object\n')
+        self.debug_logger.debug('Created connector object')
         self.connector.execute_breach()
-        self.args_dict['debug_logger'].debug('Breach has stopped executing\n')
+        self.debug_logger.debug('Connector has stopped running')
         return
 
 if __name__ == '__main__':

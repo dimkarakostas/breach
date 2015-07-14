@@ -25,30 +25,33 @@ class Connector():
         Initialize loggers and arguments dictionary.
         '''
         self.args_dict = args_dict
-        if args_dict['verbose'] < 4:
-            self.setup_logger('full', 'full_breach.log', logging.ERROR)
+        if 'full_logger' not in args_dict:
+            if args_dict['verbose'] < 4:
+                self.setup_logger('full_logger', 'full_breach.log', logging.ERROR)
+            else:
+                self.setup_logger('full_logger', 'full_breach.log')
+            self.full_logger = logging.getLogger('full_logger')
+            self.args_dict['full_logger'] = self.full_logger
         else:
-            self.setup_logger('full', 'full_breach.log')
-        if args_dict['verbose'] < 3:
-            self.setup_logger('basic', 'basic_breach.log', logging.ERROR)
+            self.full_logger = args_dict['full_logger']
+        if 'basic_logger' not in args_dict:
+            if args_dict['verbose'] < 3:
+                self.setup_logger('basic_logger', 'basic_breach.log', logging.ERROR)
+            else:
+                self.setup_logger('basic_logger', 'basic_breach.log')
+            self.basic_logger = logging.getLogger('basic_logger')
+            self.args_dict['basic_logger'] = self.basic_logger
         else:
-            self.setup_logger('basic', 'basic_breach.log')
-        if not 'debug_logger' in args_dict:
+            self.basic_logger = args_dict['basic_logger']
+        if 'debug_logger' not in args_dict:
             if args_dict['verbose'] < 2:
                 self.setup_logger('debug_logger', 'debug.log', logging.ERROR)
             else:
                 self.setup_logger('debug_logger', 'debug.log')
-            self.args_dict['debug_logger'] = logging.getLogger('debug_logger')
-        self.full_logger = logging.getLogger('full')
-        self.basic_logger = logging.getLogger('basic')
-        if not 'debug_logger' in args_dict:
-            if not logging.getLogger('debug_logger'):
-                if self.verbose < 2:
-                    self.setup_logger('debug_logger', 'debug.log', logging.ERROR)
-                else:
-                    self.setup_logger('debug_logger', 'debug.log')
             self.debug_logger = logging.getLogger('debug_logger')
             self.args_dict['debug_logger'] = self.debug_logger
+        else:
+            self.debug_logger = args_dict['debug_logger']
         return
 
     def setup_logger(self, logger_name, log_file, level=logging.DEBUG):
@@ -257,7 +260,7 @@ class Connector():
         except:
             pass
         self.full_logger.info('Connection closed')
-        self.args_dict['debug_logger'].debug('Stopping breach object with code: %d\n' % exit_code)
+        self.debug_logger.debug('Stopping breach object with code: %d' % exit_code)
         return
 
     def user_setup(self):

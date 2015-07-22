@@ -6,9 +6,9 @@ def get_arguments_dict(args_list):
     '''
     parser = argparse.ArgumentParser(description='Parser of breach.py output')
     parser.add_argument('caller_name', metavar = 'caller_name', help = 'The program that called the argument parser.')
-    parser.add_argument('-a', '--alpha_types', metavar = 'alphabet', required = True, nargs = '+', help = 'Choose alphabet types: n => digits, l => lowercase letters, u => uppercase letters, d => - and _')
+    parser.add_argument('-a', '--alpha_types', metavar = 'alphabet', nargs = '+', help = 'Choose alphabet types: n => digits, l => lowercase letters, u => uppercase letters, d => - and _')
     parser.add_argument('-l', '--len_pivot', metavar = 'pivot_length', type = int, help = 'Input the (observed payload) length value of the pivot packet')
-    parser.add_argument('-p', '--prefix', metavar = 'bootstrap_prefix', required = True, help = 'Input the already known prefix needed for bootstrap')
+    parser.add_argument('-p', '--prefix', metavar = 'bootstrap_prefix', help = 'Input the already known prefix needed for bootstrap')
     parser.add_argument('-m', '--method', metavar = 'request_method', help = 'Choose the request method: s => serial, p => parallel')
     parser.add_argument('-lf', '--latest_file', metavar = 'latest_file_number', type = int, help = 'Input the latest output file breach.py has created, -1 if first try')
     parser.add_argument('-r', '--request_len', metavar = 'minimum_request_length', type = int, help = 'Input the minimum length of the request packet')
@@ -24,8 +24,8 @@ def get_arguments_dict(args_list):
     args = parser.parse_args(args_list)
 
     args_dict = {}
-    args_dict['alpha_types'] = args.alpha_types
-    args_dict['prefix'] = args.prefix
+    args_dict['alpha_types'] = args.alpha_types if args.alpha_types else None
+    args_dict['prefix'] = args.prefix if args.prefix else None
     args_dict['method'] = args.method if args.method else 's'
     args_dict['pivot_length'] = args.len_pivot if args.len_pivot else None
     args_dict['minimum_request_length'] = args.request_len if args.request_len else None

@@ -5,6 +5,7 @@ import binascii
 from os import system, path
 import sys
 import signal
+from user_input import get_arguments_dict
 import constants
 
 def signal_handler(signal, frame):
@@ -402,15 +403,8 @@ class Connector():
         return
 
 if __name__ == '__main__':
-    import argparse
-    import hillclimbing
-    from user_input import get_arguments_dict
-
-    global conn
 
     args_dict = get_arguments_dict(sys.argv)
-    hillclimbing.create_request_file(args_dict)
-    system('cp request.txt ' + args_dict['wdir'])
     conn = Connector(args_dict)
     conn.full_logger.info('Hillclimbing parameters file created')
     conn.execute_breach()

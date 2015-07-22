@@ -11,6 +11,7 @@ def signal_handler(signal, frame):
     Signal handler for killing the execution.
     '''
     print('Exiting the program per your command')
+    breach.debug_logger.debug('Exiting breach attack with last dictionary: ' + str(breach.args_dict) + '\n')
     system('rm -f out.out request.txt user_input.pyc hillclimbing.pyc constants.pyc connect.pyc parse.pyc')
     system('mv basic_breach.log full_breach.log debug.log attack.log ' + args_dict['history_folder'])
     sys.exit(0)

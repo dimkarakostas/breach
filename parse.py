@@ -136,7 +136,6 @@ class Parser():
         system('cp out.out ' + self.history_folder + self.filename + '/out_' + self.filename + '_' + str(self.latest_file))
         out_iterator = '0'
         total_requests = 0
-        aggregated = []
         while int(out_iterator) < 10000000:
             try:
                 output_file = open(self.history_folder + self.filename + '/out_' + self.filename + '_' + out_iterator, 'r')
@@ -144,11 +143,7 @@ class Parser():
                     result_file.write('out_' + self.filename + '_' + out_iterator + '\n')
 
                 prev_request = 0
-                curr_request = 0
                 buff = []
-                request_buff = []
-                found_first_req = False
-                found_response_packet = False
                 grab_next = False
                 response_length = 0
                 in_bracket = True
@@ -157,15 +152,15 @@ class Parser():
                 illegal_next_response = False
                 illegal_iteration = False
                 for line in output_file.readlines():
-                    if prev_request and prev_request % len(self.alphabet) == 0:
+                    if len(buff) == len(self.alphabet):
                         if illegal_iteration:
                             if not float(total_requests/len(self.alphabet)) in self.args_dict['illegal_iterations']:
                                 self.args_dict['illegal_iterations'].append(float(total_requests/len(self.alphabet)))
                             illegal_iteration = False
                         else:
-                            for r in buff:
-                                aggregated.append(r)
-                                total_requests = total_requests + 1
+                            self.aggregated_input = buff
+                            total_requests = total_requests + 1
+                            self.calculate_output()
                         buff = []
                     if line.find(':') < 0:
                         continue
@@ -178,7 +173,7 @@ class Parser():
                             continue
                         else:
                             if pref == 'User application payload' and int(size) > self.minimum_request_length:
-                                if response_length == 0:
+                                if self.iterations[self.alphabet[0]] and (response_length == 0):
                                     illegal_request = True
                                     illegal_next_response = True
                                 if in_bracket:
@@ -211,39 +206,25 @@ class Parser():
 
                 output_file.close()
                 out_iterator = str(int(out_iterator) + 1)
-                aggregated.append('-1: -2')
             except IOError:
                 break
-        return aggregated
+        return
 
-    def calculate_output(self, aggregated_input):
+    def calculate_output(self):
         '''
         Calculate output from aggregated input.
         '''
-        samples = {}
-        iterations = {}
-        output_sum = {}
-        for i in self.alphabet:
-            iterations[i] = 0
-            output_sum[i] = 0
-        alpha_counter = 0
-        for parsed_line in aggregated_input:
-            it, size = parsed_line.split(': ')
-            if int(size) == -2:
-                alpha_counter = 0
-                continue
+        for line in enumerate(self.aggregated_input):
+            it, size = line[1].split(': ')
             if int(size) > 0:
-                output_sum[self.alphabet[alpha_counter]] = output_sum[self.alphabet[alpha_counter]] + int(size)
-                iterations[self.alphabet[alpha_counter]] = iterations[self.alphabet[alpha_counter]] + 1
-            alpha_counter = alpha_counter + 1
-            if alpha_counter > len(self.alphabet) - 1:
-                alpha_counter = 0
-                sample = self.create_dictionary_sample(output_sum, iterations)
-                sorted_sample = self.sort_dictionary_values(sample)
-                samples[iterations[self.alphabet[alpha_counter]]] = sorted_sample
-        return output_sum, iterations, samples
+                self.output_sum[self.alphabet[line[0]]] = self.output_sum[self.alphabet[line[0]]] + int(size)
+                self.iterations[self.alphabet[line[0]]] = self.iterations[self.alphabet[line[0]]] + 1
+        sample = self.create_dictionary_sample(self.output_sum, self.iterations)
+        sorted_sample = self.sort_dictionary_values(sample)
+        self.samples[self.iterations[self.alphabet[0]]] = sorted_sample
+        return
 
-    def log_with_correct_value(self, samples, iterations):
+    def log_with_correct_value(self):
         '''
         Write parsed output to result file when knowing the correct value.
         '''
@@ -256,7 +237,7 @@ class Parser():
             result_file.write('Iteration - Length Chart - Divergence from top - Points Chart - Points\n\n')
         found_in_iter = False
         correct_leader = False
-        for sample in samples:
+        for sample in self.samples:
             pos = 1
             for j in sample[1]:
                 if correct_leader:
@@ -279,12 +260,12 @@ class Parser():
                     if pos == 1:
                         leader_len = j[0]
                 if pos in self.point_system:
-                    if iterations[self.alphabet[0]] > self.max_iter/2:
+                    if self.iterations[self.alphabet[0]] > self.max_iter/2:
                         points[j[1]] = points[j[1]] + 2 * self.point_system[pos]
                     else:
                         points[j[1]] = points[j[1]] + self.point_system[pos]
                 pos = pos + 1
-            if sample[0] % self.sampling_ratio == 0 or sample[0] > len(samples) - 10:
+            if sample[0] % self.sampling_ratio == 0 or sample[0] > len(self.samples) - 10:
                 if not found_in_iter:
                     with open(self.history_folder + self.filename + '/result_' + self.filename, 'a') as result_file:
                         result_file.write('%d\t%d\t%d\t%d\t%d\n' % (0, 0, 0, 0, 0))
@@ -303,14 +284,14 @@ class Parser():
             result_file.write('\n')
         return points
 
-    def log_without_correct_value(self, samples, iterations, combined_sorted):
+    def log_without_correct_value(self, combined_sorted):
         '''
         Write parsed output to result file without knowing the correct value.
         '''
         points = {}
         for i in self.alphabet:
             points[i] = 0
-        for sample in samples:
+        for sample in self.samples:
             for j in enumerate(sample[1]):
                 if j[0] in self.point_system and sample[1][0]:
                     if sample[0] > self.max_iter/2:
@@ -319,7 +300,7 @@ class Parser():
                         points[j[1][1]] = points[j[1][1]] + self.point_system[j[0]]
         with open(self.history_folder + self.filename + '/result_' + self.filename, 'a') as result_file:
             result_file.write('\n')
-            result_file.write('Iteration %d\n\n' % iterations[self.alphabet[0]])
+            result_file.write('Iteration %d\n\n' % self.iterations[self.alphabet[0]])
         if self.method == 's' and combined_sorted:
             with open(self.history_folder + self.filename + '/result_' + self.filename, 'a') as result_file:
                 result_file.write('Correct Value is \'%s\' with divergence %f from second best.\n' % (combined_sorted[0][1], combined_sorted[1][0] - combined_sorted[0][0]))
@@ -368,7 +349,8 @@ class Parser():
         Continue the attack properly, after checkpoint was reached.
         '''
         if len(correct_alphabet) == 1:
-            self.args_dict['prefix'] = self.prefix + points[0][1].split()[0]
+            correct_item = points[0][1].split()[0].split(self.prefix)[1]
+            self.args_dict['prefix'] = self.prefix + correct_item
             self.args_dict['divide_and_conquer'] = 0
             self.args_dict['alphabet']= self.get_alphabet({'alpha_types': self.alpha_types, 'prefix': self.prefix, 'method': self.method})
             self.attack_logger.debug('SUCCESS: %s' % correct_alphabet[0])
@@ -378,10 +360,9 @@ class Parser():
             self.continue_attack = True
         else:
             self.args_dict['divide_and_conquer'] = self.divide_and_conquer + 1
-            correct_alphabet = points[0][1].split(self.prefix)
-            correct_alphabet.pop(0)
+            correct_alphabet = points[0][1].split()
             for i in enumerate(correct_alphabet):
-                correct_alphabet[i[0]] = i[1].split()[0]
+                correct_alphabet[i[0]] = i[1].split(self.prefix)[1]
             self.args_dict['alphabet'] = self.continue_parallel_division(correct_alphabet)
             self.continue_next_hop = True
             self.attack_logger.debug('Correct Alphabet: %d Incorrect Alphabet: %d' % (points[0][0], points[1][0]))
@@ -427,6 +408,7 @@ class Parser():
         self.continue_attack = False
         while path.isfile(self.history_folder + self.filename + '/out_' + self.filename + '_' + str(self.latest_file)):
             self.latest_file = self.latest_file + 1
+
         return
 
     def parse_input(self):
@@ -436,18 +418,25 @@ class Parser():
         self.prepare_parsing()
         self.debug_logger.debug('Starting loop with args_dict: %s' % str(self.args_dict))
         while self.connector.isAlive() if self.execute_breach else True:
-            points = {}
+            self.samples = {}
+            self.iterations = {}
+            self.output_sum = {}
             for i in self.alphabet:
-                points[i] = 0
+                self.iterations[i] = 0
+                self.output_sum[i] = 0
             system('rm ' + self.history_folder + self.filename + '/result_' + self.filename)
 
-            aggregated_input = self.get_aggregated_input()
-            output_sum, iterations, samples = self.calculate_output(aggregated_input)
-            combined = self.create_dictionary_sample(output_sum, iterations)
+            self.get_aggregated_input()
+
+            combined = self.create_dictionary_sample(self.output_sum, self.iterations)
             combined_sorted = self.sort_dictionary_values(combined)
-            samples[iterations[self.alphabet[0]]] = combined_sorted
-            samples = self.sort_dictionary(samples)
-            points = self.log_with_correct_value(samples, iterations) if self.correct_val else self.log_without_correct_value(samples, iterations, combined_sorted)
+            self.samples[self.iterations[self.alphabet[0]]] = combined_sorted
+            self.samples = self.sort_dictionary(self.samples)
+            with open('sample.log', 'w') as f:
+                for s in self.samples:
+                    f.write(str(s) + '\n')
+            system('mv sample.log ' + self.history_folder + self.filename + '/')
+            points = self.log_with_correct_value() if self.correct_val else self.log_without_correct_value(combined_sorted)
             if self.method == 's':
                 correct_alphabet = self.log_result_serial(combined_sorted, points)
             elif self.method == 'p':

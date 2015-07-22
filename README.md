@@ -21,4 +21,4 @@ Tools to execute [BREACH](http://breachattack.com) attack.
  * The jQuery library needed for evil.js. Download it and put it in your web application folder. You can find an online version [here](http://code.jquery.com/jquery-2.1.4.min.js).
 
 ## Disclaimer
-The above code was created for the needs of my thesis at [School of Electrical and Computer Engineering](ece.ntua.gr) of the National Technical University of Athens. Please do not use for malicious purposes!
+The above code was created for the needs of my thesis at the [School of Electrical and Computer Engineering](http://www.ece.ntua.gr/) of the National Technical University of Athens. Please do not use for malicious purposes!

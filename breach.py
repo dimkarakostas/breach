@@ -10,10 +10,10 @@ def signal_handler(signal, frame):
     '''
     Signal handler for killing the execution.
     '''
-    print('Exiting the program per your command')
+    print('Exiting breach.py per your command')
     breach.debug_logger.debug('Exiting breach attack with last dictionary: ' + str(breach.args_dict) + '\n')
     system('rm -f out.out request.txt user_input.pyc hillclimbing.pyc constants.pyc connect.pyc parse.pyc')
-    system('mv basic_breach.log full_breach.log debug.log attack.log ' + args_dict['history_folder'])
+    system('mv basic_breach.log full_breach.log debug.log attack.log win_count.log ' + args_dict['history_folder'])
     sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
 
@@ -60,6 +60,7 @@ if __name__ == '__main__':
 
     args_dict = get_arguments_dict(sys.argv)
     args_dict['start_time'] = datetime.datetime.now()
+    args_dict['win_count'] = {}
     try:
         while 1:
             args_dict['illegal_iterations'] = []

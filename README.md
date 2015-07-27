@@ -11,8 +11,8 @@ Tools to execute [BREACH](http://breachattack.com) attack.
  * Script that parses the lengths sniffed over the network and decides how the attack should continue.
 * hillclimbing.py
  * Script that creates the parameters needed by evil.js.
-* user_input.py
- * Parse the command line arguments needed from user to execute the attack.
+* io_library.py
+ * Library with useful function for I/O communication with the user.
 * index.html
  * Minimal HTML page that contains the evil js.
 * evil.js

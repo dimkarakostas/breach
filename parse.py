@@ -8,17 +8,9 @@ import time
 import threading
 import constants
 import connect
-from user_input import get_arguments_dict
+from io_library import kill_signal_handler, get_arguments_dict, setup_logger
 
-def signal_handler(signal, frame):
-    '''
-    Signal handler for killing the execution.
-    '''
-    print('Exiting parse.py per your command')
-    system('rm -f out.out request.txt user_input.pyc hillclimbing.pyc constants.pyc connect.pyc')
-    system('mv basic_breach.log full_breach.log debug.log attack.log win_count.log ' + parser.history_folder)
-    sys.exit(0)
-signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGINT, kill_signal_handler)
 
 class Parser():
     '''
@@ -47,53 +39,37 @@ class Parser():
         self.wdir = args_dict['wdir']
         self.execute_breach = args_dict['execute_breach']
         self.divide_and_conquer = args_dict['divide_and_conquer'] if 'divide_and_conquer' in args_dict else 0
-        self.history_folder = args_dict['history_folder'] if 'history_folder' in args_dict else 'history/'
+        self.history_folder = args_dict['history_folder']
         self.latest_file = 0
         self.point_system = constants.POINT_SYSTEM_MAPPING[args_dict['method']]
         if 'attack_logger' not in args_dict:
             if self.verbose < 1:
-                self.setup_logger('attack_logger', 'attack.log', logging.ERROR)
+                setup_logger('attack_logger', 'attack.log', args_dict, logging.ERROR)
             else:
-                self.setup_logger('attack_logger', 'attack.log')
+                setup_logger('attack_logger', 'attack.log', args_dict)
             self.attack_logger = logging.getLogger('attack_logger')
             self.args_dict['attack_logger'] = self.attack_logger
         else:
             self.attack_logger = args_dict['attack_logger']
         if 'debug_logger' not in args_dict:
             if self.verbose < 2:
-                self.setup_logger('debug_logger', 'debug.log', logging.ERROR)
+                setup_logger('debug_logger', 'debug.log', args_dict, logging.ERROR)
             else:
-                self.setup_logger('debug_logger', 'debug.log')
+                setup_logger('debug_logger', 'debug.log', args_dict)
             self.debug_logger = logging.getLogger('debug_logger')
             self.args_dict['debug_logger'] = self.debug_logger
         else:
             self.debug_logger = args_dict['debug_logger']
         if 'win_logger' not in args_dict:
             if self.verbose < 2:
-                self.setup_logger('win_logger', 'win_count.log', logging.ERROR)
+                setup_logger('win_logger', 'win_count.log', args_dict, logging.ERROR)
             else:
-                self.setup_logger('win_logger', 'win_count.log')
+                setup_logger('win_logger', 'win_count.log', args_dict)
             self.win_logger = logging.getLogger('win_logger')
             self.args_dict['win_logger'] = self.win_logger
         else:
             self.win_logger = args_dict['win_logger']
         system('mkdir ' + self.history_folder)
-        return
-
-    def setup_logger(self, logger_name, log_file, level=logging.DEBUG):
-        '''
-        Logger factory.
-        '''
-        l = logging.getLogger(logger_name)
-        l.setLevel(level)
-        formatter = logging.Formatter('%(asctime)s : %(message)s')
-        fileHandler = logging.FileHandler(log_file)
-        fileHandler.setFormatter(formatter)
-        l.addHandler(fileHandler)
-        if self.args_dict['log_to_screen']:
-            streamHandler = logging.StreamHandler()
-            streamHandler.setFormatter(formatter)
-            l.addHandler(streamHandler)
         return
 
     def create_dictionary_sample(self, output_dict, iter_dict):
@@ -363,7 +339,7 @@ class Parser():
                 self.attack_logger.debug('----------Continuing----------')
                 self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
             else:
-                self.args_dict['win_count'][sorted_wins[0][1]] = self.args_dict['win_count'][sorted_wins[0][1]] + 1
+                self.args_dict['win_count'][points[0][1]] = self.args_dict['win_count'][points[0][1]] + 1
                 self.attack_logger.debug('Correct Alphabet: %d Incorrect Alphabet: %d' % (points[0][0], points[1][0]))
                 self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
         else:
@@ -378,7 +354,7 @@ class Parser():
                 self.args_dict['alphabet'] = self.continue_parallel_division(correct_alphabet)
                 self.attack_logger.debug('SUCCESS: %s' % points[0][1])
             else:
-                self.args_dict['win_count'][sorted_wins[0][1]] = self.args_dict['win_count'][sorted_wins[0][1]] + 1
+                self.args_dict['win_count'][points[0][1]] = self.args_dict['win_count'][points[0][1]] + 1
         new_sorted_wins = self.sort_dictionary_values(self.args_dict['win_count'], True)
         self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(new_sorted_wins)))
         self.args_dict['latest_file'] = 0
@@ -494,6 +470,7 @@ class ConnectorThread(threading.Thread):
 if __name__ == '__main__':
     args_dict = get_arguments_dict(sys.argv)
     args_dict['start_time'] = datetime.datetime.now()
+    args_dict['history_folder'] = 'history/'
     while 1:
         parser = Parser(args_dict)
         args_dict = parser.parse_input()

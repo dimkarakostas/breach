@@ -5,17 +5,10 @@ import binascii
 from os import system, path
 import sys
 import signal
-from user_input import get_arguments_dict
+from io_library import kill_signal_handler, get_arguments_dict, setup_logger
 import constants
 
-def signal_handler(signal, frame):
-    '''
-    Signal handler for killing the execution.
-    '''
-    print('Exiting the program per your command')
-    conn.stop()
-    exit(0)
-signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGINT, kill_signal_handler)
 
 class Connector():
     '''
@@ -28,47 +21,31 @@ class Connector():
         self.args_dict = args_dict
         if 'full_logger' not in args_dict:
             if args_dict['verbose'] < 4:
-                self.setup_logger('full_logger', 'full_breach.log', logging.ERROR)
+                setup_logger('full_logger', 'full_breach.log', args_dict, logging.ERROR)
             else:
-                self.setup_logger('full_logger', 'full_breach.log')
+                setup_logger('full_logger', 'full_breach.log', args_dict)
             self.full_logger = logging.getLogger('full_logger')
             self.args_dict['full_logger'] = self.full_logger
         else:
             self.full_logger = args_dict['full_logger']
         if 'basic_logger' not in args_dict:
             if args_dict['verbose'] < 3:
-                self.setup_logger('basic_logger', 'basic_breach.log', logging.ERROR)
+                setup_logger('basic_logger', 'basic_breach.log', args_dict, logging.ERROR)
             else:
-                self.setup_logger('basic_logger', 'basic_breach.log')
+                setup_logger('basic_logger', 'basic_breach.log', args_dict)
             self.basic_logger = logging.getLogger('basic_logger')
             self.args_dict['basic_logger'] = self.basic_logger
         else:
             self.basic_logger = args_dict['basic_logger']
         if 'debug_logger' not in args_dict:
             if args_dict['verbose'] < 2:
-                self.setup_logger('debug_logger', 'debug.log', logging.ERROR)
+                setup_logger('debug_logger', 'debug.log', args_dict, logging.ERROR)
             else:
-                self.setup_logger('debug_logger', 'debug.log')
+                setup_logger('debug_logger', 'debug.log', args_dict)
             self.debug_logger = logging.getLogger('debug_logger')
             self.args_dict['debug_logger'] = self.debug_logger
         else:
             self.debug_logger = args_dict['debug_logger']
-        return
-
-    def setup_logger(self, logger_name, log_file, level=logging.DEBUG):
-        '''
-        Logger factory.
-        '''
-        l = logging.getLogger(logger_name)
-        l.setLevel(level)
-        formatter = logging.Formatter('%(asctime)s : %(message)s')
-        fileHandler = logging.FileHandler(log_file)
-        fileHandler.setFormatter(formatter)
-        l.addHandler(fileHandler)
-        if self.args_dict['log_to_screen']:
-            streamHandler = logging.StreamHandler()
-            streamHandler.setFormatter(formatter)
-            l.addHandler(streamHandler)
         return
 
     def log_data(self, data):

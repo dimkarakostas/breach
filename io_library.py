@@ -1,4 +1,17 @@
+from os import system
+import sys
+import signal
 import argparse
+import logging
+
+def kill_signal_handler(signal, frame):
+    '''
+    Signal handler for killing the execution.
+    '''
+    print('Exiting the program per your command')
+    system('rm -f out.out request.txt user_input.pyc hillclimbing.pyc constants.pyc connect.pyc')
+    system('mv basic_breach.log full_breach.log debug.log attack.log win_count.log history/')
+    sys.exit(0)
 
 def get_arguments_dict(args_list):
     '''
@@ -17,7 +30,6 @@ def get_arguments_dict(args_list):
     parser.add_argument('-i', '--iterations', metavar = 'number_of_iterations', type = int, help = 'Input the number of iterations per symbol.')
     parser.add_argument('-t', '--refresh_time', metavar = 'refresh_time', type = int, help = 'Input the refresh time in seconds')
     parser.add_argument('--wdir', metavar = 'web_application_directory', help = 'The directory where you have added evil.js')
-    parser.add_argument('--history_folder', metavar = 'history_directory', help = 'The directory where you want execution logs and results to be stored')
     parser.add_argument('--execute_breach', action = 'store_true', help = 'Initiate breach attack via breach.py')
     parser.add_argument('--verbose', metavar = 'verbosity_level', type = int, help = 'Choose verbosity level: 0 => no logs, 1 => attack logs, 2 => debug logs, 3 => basic breach logs, 4 => full logs')
     parser.add_argument('--log_to_screen', action = 'store_true', help = 'Print logs to stdout')
@@ -38,5 +50,20 @@ def get_arguments_dict(args_list):
     args_dict['log_to_screen'] = True if args.log_to_screen else False
     args_dict['verbose'] = args.verbose if args.verbose else 0
     args_dict['latest_file'] = args.latest_file if args.latest_file else 0
-    args_dict['history_folder'] = args.history_folder if args.history_folder else 'history/'
     return args_dict
+
+def setup_logger(logger_name, log_file, args_dict, level=logging.DEBUG):
+    '''
+    Logger factory.
+    '''
+    l = logging.getLogger(logger_name)
+    l.setLevel(level)
+    formatter = logging.Formatter('%(asctime)s : %(message)s')
+    fileHandler = logging.FileHandler(log_file)
+    fileHandler.setFormatter(formatter)
+    l.addHandler(fileHandler)
+    if args_dict['log_to_screen']:
+        streamHandler = logging.StreamHandler()
+        streamHandler.setFormatter(formatter)
+        l.addHandler(streamHandler)
+    return

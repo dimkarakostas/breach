@@ -330,6 +330,10 @@ class Parser():
         sorted_wins = self.sort_dictionary_values(self.args_dict['win_count'], True)
         if len(correct_alphabet) == 1:
             if sorted_wins[0][0] > 10:
+                self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(sorted_wins)))
+                self.win_logger.debug('Aggregated points\n%s\n' % str(self.args_dict['point_count']))
+                self.args_dict['win_count'] = {}
+                self.args_dict['point_count'] = {}
                 correct_item = points[0][1].split()[0].split(self.prefix)[1]
                 self.args_dict['prefix'] = self.prefix + correct_item
                 self.args_dict['divide_and_conquer'] = 0
@@ -340,13 +344,21 @@ class Parser():
                 self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
             else:
                 self.args_dict['win_count'][points[0][1]] = self.args_dict['win_count'][points[0][1]] + 1
+                self.args_dict['point_count'][points[0][1]] = self.args_dict['point_count'][points[0][1]] + points[0][0]
+                self.args_dict['point_count'][points[1][1]] = self.args_dict['point_count'][points[1][1]] + points[1][0]
+                sorted_wins = self.sort_dictionary_values(self.args_dict['win_count'], True)
+                self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(sorted_wins)))
+                self.win_logger.debug('Aggregated points\n%s\n' % str(self.args_dict['point_count']))
                 self.attack_logger.debug('Correct Alphabet: %d Incorrect Alphabet: %d' % (points[0][0], points[1][0]))
                 self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
         else:
             self.attack_logger.debug('Correct Alphabet: %s' % points[0][1])
             self.attack_logger.debug('Correct Alphabet: %d Incorrect Alphabet: %d' % (points[0][0], points[1][0]))
             if sorted_wins[0][0] > 10:
+                self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(sorted_wins)))
+                self.win_logger.debug('Aggregated points\n%s\n' % str(self.args_dict['point_count']))
                 self.args_dict['win_count'] = {}
+                self.args_dict['point_count'] = {}
                 self.args_dict['divide_and_conquer'] = self.divide_and_conquer + 1
                 correct_alphabet = points[0][1].split()
                 for i in enumerate(correct_alphabet):
@@ -355,8 +367,11 @@ class Parser():
                 self.attack_logger.debug('SUCCESS: %s' % points[0][1])
             else:
                 self.args_dict['win_count'][points[0][1]] = self.args_dict['win_count'][points[0][1]] + 1
-        new_sorted_wins = self.sort_dictionary_values(self.args_dict['win_count'], True)
-        self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(new_sorted_wins)))
+                self.args_dict['point_count'][points[0][1]] = self.args_dict['point_count'][points[0][1]] + points[0][0]
+                self.args_dict['point_count'][points[1][1]] = self.args_dict['point_count'][points[1][1]] + points[1][0]
+                sorted_wins = self.sort_dictionary_values(self.args_dict['win_count'], True)
+                self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(sorted_wins)))
+                self.win_logger.debug('Aggregated points\n%s\n' % str(self.args_dict['point_count']))
         self.args_dict['latest_file'] = 0
         return True
 
@@ -373,6 +388,9 @@ class Parser():
             if not self.args_dict['win_count']:
                 for item in self.alphabet:
                     self.args_dict['win_count'][item] = 0
+            if not self.args_dict['point_count']:
+                for item in self.alphabet:
+                    self.args_dict['point_count'][item] = 0
         system('cp request.txt ' + self.wdir)
 
         if self.execute_breach:
@@ -440,11 +458,11 @@ class Parser():
             system('cat ' + self.history_folder + self.filename + '/result_' + self.filename)
             points = self.sort_dictionary_values(points, True)
             if (self.method == 'p' and points[0][0] > self.checkpoint/2) or (self.method == 's' and points[0][0] > self.checkpoint*10):
-                continue_next_hop = self.attack_forward(correct_alphabet, points)
+                self.continue_next_hop = self.attack_forward(correct_alphabet, points)
                 break
             time.sleep(self.refresh_time)
         if self.execute_breach:
-            if not continue_next_hop:
+            if not self.continue_next_hop:
                 self.connector.join()
                 self.args_dict['latest_file'] = self.latest_file + 1
         return self.args_dict

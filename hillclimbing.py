@@ -1,42 +1,28 @@
 import sys
-import user_input
-
-def initialize():
-    '''
-    Initialize global variables.
-    '''
-    global digit, lowercase, uppercase, dashes, nonce_1, nonce_2, method_functions
-    digit = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    lowercase = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-    uppercase = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-    dashes = ['-', '_']
-    nonce_1 = 'ladbfsk!'
-    nonce_2 = 'znq'
-    method_functions = {
-        's': serial_execution,
-        'p': parallel_execution
-    }
+from io_library import get_arguments_dict
+from constants import DIGIT, LOWERCASE, UPPERCASE, DASH, NONCE_1, NONCE_2
 
 def create_alphabet(alpha_types):
     '''
     Create array with the alphabet we are testing.
     '''
+    assert alpha_types, 'Empty argument for alphabet types'
     alphabet = []
     for t in alpha_types:
         if t == 'n':
-            for i in digit:
+            for i in DIGIT:
                 alphabet.append(i)
         if t == 'l':
-            for i in lowercase:
+            for i in LOWERCASE:
                 alphabet.append(i)
         if t == 'u':
-            for i in uppercase:
+            for i in UPPERCASE:
                 alphabet.append(i)
         if t == 'd':
-            for i in dashes:
+            for i in DASH:
                 alphabet.append(i)
     assert alphabet, 'Invalid alphabet types'
-    return alphabet;
+    return alphabet
 
 def huffman_point(alphabet, test_points):
     '''
@@ -83,9 +69,13 @@ def create_request_file(args_dict):
     '''
     Create the 'request' file used by evil.js to issue the requests.
     '''
-    initialize();
+    method_functions = {'s': serial_execution,
+                        'p': parallel_execution}
+
     prefix = args_dict['prefix']
+    assert prefix, 'Empty prefix argument'
     method = args_dict['method']
+    assert prefix, 'Empty method argument'
     search_alphabet = args_dict['alphabet'] if 'alphabet' in args_dict else create_alphabet(args_dict['alpha_types'])
     with open('request.txt', 'w') as f:
         f.write(prefix + '\n')
@@ -93,12 +83,12 @@ def create_request_file(args_dict):
         alphabet = method_functions[method](search_alphabet, prefix)
         for test in alphabet:
             huffman_nonce = huffman_point(alphabet, test)
-            search_string = nonce_1 + test + nonce_2
+            search_string = NONCE_1 + test + NONCE_2
             total_tests.append(search_string)
         f.write(','.join(total_tests))
         f.close()
     return reflection_alphabet
 
 if __name__ == '__main__':
-    args_dict = user_input.get_arguments_dict(sys.argv)
+    args_dict = get_arguments_dict(sys.argv)
     create_request_file(args_dict)

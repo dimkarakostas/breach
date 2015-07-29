@@ -9,7 +9,7 @@ def kill_signal_handler(signal, frame):
     Signal handler for killing the execution.
     '''
     print('Exiting the program per your command')
-    system('rm -f out.out request.txt user_input.pyc hillclimbing.pyc constants.pyc connect.pyc')
+    system('rm -f out.out request.txt io_library.pyc hillclimbing.pyc constants.pyc connect.pyc')
     system('mv basic_breach.log full_breach.log debug.log attack.log win_count.log history/')
     sys.exit(0)
 

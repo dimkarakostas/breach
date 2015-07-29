@@ -35,6 +35,7 @@ if __name__ == '__main__':
     args_dict = get_arguments_dict(sys.argv)
     args_dict['start_time'] = datetime.datetime.now()
     args_dict['win_count'] = {}
+    args_dict['point_count'] = {}
     args_dict['history_folder'] = 'history/'
     try:
         while 1:

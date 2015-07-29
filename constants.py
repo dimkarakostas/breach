@@ -58,7 +58,17 @@ ATTEMPT_DOWNGRADE = False
 MAX_TLS_POSITION = 10 # Iceweasel's max tls version byte position in Client Hello message
 MAX_TLS_ALLOWED = 1
 
-# Point systems for various methods.
+# Possible alphabets of secret
+DIGIT = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+LOWERCASE = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+UPPERCASE = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+DASH = ['-', '_']
+
+# Random nonces
+NONCE_1 = 'ladbfsk!'
+NONCE_2 = 'znq'
+
+# Point systems for various methods, used in parse.py
 SERIAL_POINT_SYSTEM = {1: 20, 2: 16, 3: 12, 4: 10, 5: 8, 6: 6, 7: 4, 8: 3, 9: 2, 10: 1}
 PARALLEL_POINT_SYSTEM = {0: 1}
 POINT_SYSTEM_MAPPING = {

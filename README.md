@@ -22,3 +22,6 @@ Tools to execute [BREACH](http://breachattack.com) attack.
 
 ## Disclaimer
 The above code was created for the needs of my thesis at the [School of Electrical and Computer Engineering](http://www.ece.ntua.gr/) of the National Technical University of Athens. Please do not use for malicious purposes!
+
+## License
+The content of this project is licensed under the [Creative Commons Attribution 4.0 license](http://creativecommons.org/licenses/by/4.0/) and the source code is licensed under the [MIT license](http://opensource.org/licenses/mit-license.php).

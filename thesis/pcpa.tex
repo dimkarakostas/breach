@@ -24,7 +24,7 @@ Intuitively, we can think that the adversary has the ability to modify the plain
 
 Suppose the adversary submits the empty string as the chosen plaintext, a choice which is allowed by the definition of the game. The challenger would then send back the ciphertext \begin{math}C_i = E(P_k, M_b||"\ ") = E(P_k, M_b)\end{math}, which is the ciphertext described in the IND-CPA game. Therefore, if the adversary has the ability to beat the game of IND-PCPA, i.e. if the system is not indistinguishable under partially chosen plaintext attacks, he also has the ability to beat the game of IND-CPA. Thus we have shown that IND-PCPA is at least as strong as IND-CPA. The above intuitive proof could be expressed formally in future works.
 
-\section{PCPA on compressed encrypted protocols}
+\section{PCPA on compressed encrypted protocols}\label{sec:cepcpa}
 
 \subsection{Compression-before-encryption and vice versa}
 When having a system that applies both compression and encryption on a given plaintext, it would be interesting to investigate the order the transformations should be executed.

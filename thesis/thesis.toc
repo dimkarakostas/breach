@@ -1,7 +1,0 @@
-
-\select@language {english}
-\contentsline {chapter}{Contents}{1}{chapter*.1}
-\addvspace {1em}
-\addvspace {1em}
-\contentsline {chapter}{Bibliography}{3}{chapter*.3}
-\addvspace {1em}

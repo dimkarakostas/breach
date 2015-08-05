@@ -19,10 +19,75 @@ LZ77 is a lossless data compression algorithm published in paper by A. Lempel an
 
 Below you can see an example of a step-by-step execution of the algorithm for a specific text:
 
-\begin{figure}[h!] \caption{First we get the plaintext to be compressed.} \centering \includegraphics[width=0.5\textwidth]{diagrams/lz77_1.png}\end{figure}
-\begin{figure}[h!] \caption{Compression starts with literal representation.} \centering \includegraphics[width=0.35\textwidth]{diagrams/lz77_2.png}\end{figure}
-\begin{figure}[h!] \caption{We then use a pointer at distance 26 and length 16.} \centering \includegraphics[width=0.35\textwidth]{diagrams/lz77_3.png}\end{figure}
-\begin{figure}[h!] \caption{We continue with literal.} \centering \includegraphics[width=0.35\textwidth]{diagrams/lz77_4.png}\end{figure}
-\begin{figure}[h!] \caption{We use a pointer pointing to a pointer.} \centering \includegraphics[width=0.35\textwidth]{diagrams/lz77_5.png}\end{figure}
-\begin{figure}[h!] \caption{We then use a pointer pointing to a pointer pointing to a pointer.} \centering \includegraphics[width=0.35\textwidth]{diagrams/lz77_6.png}\end{figure}
-\begin{figure}[h!] \caption{Finally, we use a pointer pointing to itself.} \centering \includegraphics[width=0.5\textwidth]{diagrams/lz77_7.png}\end{figure}
+\begin{figure}[H] \caption{First we get the plaintext to be compressed.} \centering \includegraphics[width=0.5\textwidth]{diagrams/lz77_1.png}\end{figure}
+\begin{figure}[H] \caption{Compression starts with literal representation.} \centering \includegraphics[width=0.35\textwidth]{diagrams/lz77_2.png}\end{figure}
+\begin{figure}[H] \caption{We then use a pointer at distance 26 and length 16.} \centering \includegraphics[width=0.35\textwidth]{diagrams/lz77_3.png}\end{figure}
+\begin{figure}[H] \caption{We continue with literal.} \centering \includegraphics[width=0.35\textwidth]{diagrams/lz77_4.png}\end{figure}
+\begin{figure}[H] \caption{We use a pointer pointing to a pointer.} \centering \includegraphics[width=0.35\textwidth]{diagrams/lz77_5.png}\end{figure}
+\begin{figure}[H] \caption{We then use a pointer pointing to a pointer pointing to a pointer.} \centering \includegraphics[width=0.35\textwidth]{diagrams/lz77_6.png}\end{figure}
+\begin{figure}[H] \caption{Finally, we use a pointer pointing to itself.} \centering \includegraphics[width=0.5\textwidth]{diagrams/lz77_7.png}\end{figure}
+
+
+\subsection{Huffman coding}
+Huffman coding is also a lossless data compression algorithm developed by David A. Huffman and published in 1952. \cite{huffman} When compressing a text, a variable-length code table is created to map source symbols to bitstreams. Each source symbol can be of less or more bits than originally and the mapping table is used to translate source symbols into bitstreams during compression and vice versa during decompression. The mapping table could be represented by a binary tree of nodes. Each leaf node represents a source symbol, which can be accessed from the root by following the left path for 0 and the right path for 1. Each source symbol can be represented only by leaf nodes, therefore the code is prefix-free, meaning no bitstream representing a source symbol can be the prefix of any other bitstream representing a different source symbol. The final mapping of source symbols to bistreams is calculated by finding the frequency of appearance for each source symbol of the plaintext. That way, most common symbols can be coded in shorter bitstreams, thus compressing the initial text.
+
+Below follows an example of a plaintext and a valid Huffman tree for compressing it:
+
+\bigskip
+\centerline{\textit{\textbf{Chancellor on bring of second bailout for banks}} \footnote{\url{https://en.bitcoin.it/wiki/Genesis_block}}}
+
+\bigskip
+\centerline{\textbf{Frequency Analysis}}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{ | l | l | l | l | }
+    \hline
+    \textbf{o}: 6 & \textbf{n}: 5 & \textbf{r}: 3 & \textbf{l}: 3 \\
+    \textbf{b}: 3 & \textbf{c}: 3 & \textbf{a}: 3 & \textbf{s}: 2 \\
+    \textbf{k}: 2 & \textbf{e}: 2 & \textbf{i}: 2 & \textbf{f}: 2 \\
+    \textbf{h}: 1 & \textbf{d}: 1 & \textbf{t}: 1 & \textbf{u}: 1 \\
+    \hline
+    \end{tabular}
+\end{table}
+
+\centerline{\textbf{Huffman tree}}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{ | l | l | l | l | }
+    \hline
+    \textbf{o}: 00 & \textbf{n}: 01 & \textbf{r}: 1000 & \textbf{l}: 1001 \\
+    \textbf{b}: 1010 & \textbf{c}: 1011 & \textbf{a}: 11000 & \textbf{s}: 11001 \\
+    \textbf{k}: 11010 & \textbf{e}: 11011 & \textbf{i}: 11100 & \textbf{f}: 1111000 \\
+    \textbf{h}: 1111001 & \textbf{d}: 1111010 & \textbf{t}: 1111011 & \textbf{u}: 1111100 \\
+    \hline
+    \end{tabular}
+\end{table}
+
+\centerline{\textbf{Initial text size: 320 bits}}
+\centerline{\textbf{Compressed text size: 167 bits}}
+
+\section{Same-origin policy}\label{sec:sameorigin}
+
+Same-origin policy is an important aspect of the web application security model. According to that policy, a web browser allow scripts contained in one page to access data in a second page only if both pages have the same \textit{origin}. Origin is defined as the combination of Uniform Resource Identifier scheme, hostname and port number. For example, a document retrieved from the website \textit{http://example.com/target.html} is not allowed under the same-origin policy to access the Document-Object Model of a document retrieved from \textit{https://head.example.com/target.html}, since the two websites have different URI schema (\textit{http} vs \textit{https}) and different hostname (\textit{example.com} vs \textit{head.example.com}).
+
+Same-origin policy is particularly important in modern web applications, that rely greatly on HTTP cookies to maintain authenticated sessions. If same-origin policy was not implemented the data confidentiality and integrity of cookies, as well as every other content of web pages, would have been compromised. However, despite the application of same-origin policy by modern browsers, there exist attacks that enable an adversary to bypass it and breach a user's communication with a website. Two such major types of vulnerabilities, cross-site scripting and cross-site request forgery are described in the following subsections.
+
+\subsection{Cross-site scripting}
+
+Cross-site scripting (XSS) is a security vulnerability that allows an adversary to inject client-side script into web pages viewed by other users. That way, same-origin policy can be bypassed and sensitive data handled by the vulnerable website may be compromised. XSS could be divided into two major types, \textit{non-persistent} and \textit{persistent} \footnote{\url{https://en.wikipedia.org/wiki/Cross-site_scripting}}, which we will describe below.
+
+Non-persistent XSS vulnerabilities are the most common. They show up when the web server does not parse the input in order to escape or reject HTML control characters, allowing for scripts injected to the input to run unnoticeable. Usual methods of performing non-persistent XSS include mail or website url links and search requests.
+
+Persistent XSS occurs when data provided by the attacker are stored by the server. Responses from the server to different users will then include the script injected from the attacker, allowing it to run automatically on the victim's browsers without needing to target them individually. An example of such attack is when posting texts on social networks or message boards.
+
+\subsection{Cross-site request forgery}
+
+Cross-site request forgery (CSRF) is an exploit that allows an attacker to issue unauthorized commands to a website, on behalf of a user the website trusts. Hence the attacker can forge a request to perform actions or post data on a website the victim is logged in, execute remote code with root privileges or compromise a root certificate, resulting in a breach of a whole public key infrastructure (PKI).
+
+CSRF can be performed when the victim is trusted by a website and the attacker can trick the victim's browser into sending HTTP requests to that website. For example, when a Alice visits a web page that contains the HTML image tag \textit{<img src="\url{http://bank.example.com/withdraw?account=Alice&amount=1000000&for=Mallory}">} \footnote{\url{https://en.wikipedia.org/wiki/Cross-site_request_forgery}} that Mallory has injected, a request from Alice's browser to the example bank's website will be issued, stating for an amount of 1000000 to be transfered from Alice's account to Mallory's. If Alice is logged in the example bank's website, the browser will include the cookie containing Alice's authentication information in the request, making it a valid request for a transfer. If the website does not perform more sanity checks or further validation from Alice, the unauthorized transaction will be completed. An attack such as this is very common on Internet forums that allow users to post images.
+
+A method of mitigation of CSRF is a Cookie-to-Header token. The web application sets a cookie that contains a random token that validates a specific user session. Javascript on client side reads that token and includes it in a HTTP header sent with each request to the web application. Since only Javascript running within the same origin will be allowed to read the token, we can assume that it's value is safe from unauthorized scripts to read and copy it to a custom header in order to mark a rogue request as valid.
+
+\section{Transport Layer Security}\label{sec:tls}

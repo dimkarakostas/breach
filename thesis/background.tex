@@ -91,3 +91,85 @@ CSRF can be performed when the victim is trusted by a website and the attacker c
 A method of mitigation of CSRF is a Cookie-to-Header token. The web application sets a cookie that contains a random token that validates a specific user session. Javascript on client side reads that token and includes it in a HTTP header sent with each request to the web application. Since only Javascript running within the same origin will be allowed to read the token, we can assume that it's value is safe from unauthorized scripts to read and copy it to a custom header in order to mark a rogue request as valid.
 
 \section{Transport Layer Security}\label{sec:tls}
+
+Transport Layer Security (TLS) is a protocol that provides communications security over the internet, allowing a server and a client to communicate in a way that prevents eavesdropping, tampering or message forgery. \cite{tls12}
+
+The users negotiate a symmetric key via assymetric cryptography that is provided by X.509 certificates, therefore there exist certificate authorities and a public key infrastructure (PKI), in order for the certificates to be verified for their owners. However, it can be understood that, due to their key role, certificate authorities are points of failure in the system, enabling for Man-in-the-Middle attacks, in a case when an adversary has managed to forge a root certificate.
+
+Apart from certificate-related attacks, a well-known category is compression attacks. \footnote{\url{https://tools.ietf.org/html/rfc7457}} Such attacks exploit TLS-level compression so as to decrypt ciphertext. In this document, we investigate the threat model and performance of such an attack, \href{http://breachattack.com}{BREACH}.
+
+In the following subsections we will briefly describe some of the protocol details, especially handshake and the format of TLS records.
+
+\subsection{TLS handshake}
+
+\begin{figure}[H] \caption{TLS handshake flow.} \centering \includegraphics[width=0.7\textwidth]{diagrams/tls_handshake.png}\end{figure}
+
+This sequence diagram presents the functionality of TLS handshake. User and server exchange the basic parameters of the connection, specifically the protocol version, cipher suite, compression method and random numbers, with the ClientHello and ServerHello records. The server then provides all information needed from the user to validate and use the asymmetric server key, in order to compute the symmetric key to be used in the rest of the communication. The client computes a \textit{PreMasterKey}, that is sent to the server, which is used by both parties to compute the symmetric key. Finally, both sides exchange and validate hash and MAC over the previous messages, after which they both have the ability to communicate safely.
+
+The above flow describes the basic TLS handshake. Client-authenticated and resumed handshakes have similar functionality, which are not relevant for the purpose of this paper.
+
+\subsection{TLS record}
+
+\begin{figure}[H] \caption{TLS record.} \centering \includegraphics[width=1\textwidth]{diagrams/tls_record.png}\end{figure}
+
+The above figure \footnote{\url{https://en.wikipedia.org/wiki/Transport_Layer_Security}} depicts the general format of all TLS records.
+
+The first field describes the Record Layer Protocol Type contained in the record, which can be one of the following:
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{ | l | l | }
+    \hline
+    \textbf{Hex} & \textbf{Type} \\
+    \hline
+    0x14 & ChangeCipherSpec \\
+    0x15 & Alert \\
+    0x16 & Handshake \\
+    0x17 & Appliation \\
+    0x18 & Heartbeat \\
+    \hline
+    \end{tabular}
+\end{table}
+
+The second field defines the TLS version for the record message, which is identified my the major and minor version as below:
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{ | l | l | l | }
+    \hline
+    \textbf{Major} & \textbf{Minor} & \textbf{Version} \\
+    \hline
+    3 & 0 & SSL 3.0 \\
+    3 & 1 & TLS 1.0 \\
+    3 & 2 & TLS 1.1 \\
+    3 & 3 & TLS 1.2 \\
+    \hline
+    \end{tabular}
+\end{table}
+
+The length of the contained record message, MAC and padding is then calculated by the following two fiels as: \begin{math}256*(bits 15..8) + (bits 7..0)\end{math}.
+
+Finally, the payload of the record, which, depending on the type, may be encrypted, the MAC, if provided, and the padding, if needed, make up the rest of the TLS record.
+
+\section{Man-in-the-Middle}\label{sec:mitm}
+
+Man-in-the-Middle (MitM) is one of the most common attack vectors, where an attacker reroutes the communication of two parties, in order to be controlled and possibly altered. The aggressiveness of the attack can vary from passive eavesdropping to full control of the communication, as long as the attacker is able to impersonate both parties and convince them to be trusted.
+
+\begin{figure}[H] \caption{Man-in-the-Middle.} \centering \includegraphics[width=1\textwidth]{diagrams/mitm.png}\end{figure}
+
+MitM attacks can be mitigated by using end-to-end cryptography, mutual authentication or PKIs. However, some attacks manage to bypass such mitigation techniques. Below, we descripe two such attacks, ARP Spoofing and DNS cache poisoning.
+
+\subsection{ARP Spoofing}
+ARP spoofing \footnote{\url{https://en.wikipedia.org/wiki/ARP_spoofing}} is a technique where an attacker sends Address Resolution Protocol (ARP) messages over the network, so as to assosiate the MAC address with the IP address of another host. That way, the attacker may intercept the traffic of the network, modify or deny packets, performing denial of service, MitM or session hijacking attacks.
+
+\begin{figure}[H] \caption{Arp Spoofing.} \centering \includegraphics[width=0.8\textwidth]{diagrams/arp_spoofing.png}\end{figure}
+
+ARP spoofing can be also used for legitimate reasons, when a developer needs to debug IP traffic between two hosts. That way, the developer can act as proxy between the two hosts or configure the switch that is normally used by the two parties to forward traffic for monitoring.
+
+\subsection{DNS spoofing}
+
+\begin{figure}[H] \caption{DNS Spoofing.} \centering \includegraphics[width=0.5\textwidth]{diagrams/dns_spoofing.png}\end{figure}
+
+DNS spoofing (or DNS cache poisoning) is an attack, when the adversary introduces data into a Domain Name System resolver's cache, in order to return an incorrect address for a specific host.
+
+DNS servers are usually provided by Internet Service Providers (ISPs), used to resolve IP addresses to human-readable hostnames faster. A malicious employee, or anyone that has gained unauthorized access to the server, can then perform DNS poisoning, affecting every user that is being serviced by that server.

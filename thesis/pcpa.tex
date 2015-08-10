@@ -1,54 +1,117 @@
 \chapter{Partially Chosen Plaintext Attack}\label{ch:pcpa}
 
-Traditionally, cryptographers have used games for security analysis. Such games include the indistinguishability under chosen-plaintext-attack (IND-CPA), the indistinguishability under chosen ciphertext attack/adaptive chosen ciphertext attack (IND-CCA1, IND-CCA2) etc\footnote{\url{https://en.wikipedia.org/wiki/Ciphertext_indistinguishability}}. In this chapter, we introduce a definition for a new property of encryption schemes, called indistinguishability under partially-chosen-plaintext-attack (IND-PCPA). We will also show provide comparison between IND-PCPA and other kwown forms of cryptosystem properties.
+Traditionally, cryptographers have used games for security analysis. Such games
+include the indistinguishability under chosen-plaintext-attack (IND-CPA), the
+indistinguishability under chosen ciphertext attack/adaptive chosen ciphertext
+attack (IND-CCA1, IND-CCA2) etc
+\footnote{\url{https://en.wikipedia.org/wiki/Ciphertext_indistinguishability}}.
+In this chapter, we introduce a definition for a new property of encryption
+schemes, called indistinguishability under partially-chosen-plaintext-attack
+(IND-PCPA). We will also show provide comparison between IND-PCPA and other
+kwown forms of cryptosystem properties.
 
 \section{Partially Chosen Plaintext Indistinguishability}\label{sec:indpcpa}
 
-\subsection{Definition}
-IND-PCPA uses a definition similar to that of IND-CPA. For a probabilistic asymmetric key encryption algorithm, indistinguishability under partially chosen plaintext attack (IND-PCPA) is defined by the following game between an adversary and a challenger.
+\subsection{Definition} IND-PCPA uses a definition similar to that of IND-CPA.
+For a probabilistic asymmetric key encryption algorithm, indistinguishability
+under partially chosen plaintext attack (IND-PCPA) is defined by the following
+game between an adversary and a challenger.
 
-\begin{itemize}
-\item The challenger generates a pair \begin{math}P_k, S_k\end{math} and publishes \begin{math}P_k\end{math} to the adversary.
-\item The adversary may perform a polynomially bounded number of encryptions or other operations.
-\item Eventually, the adversary submits two distinct chosen plaintexts \begin{math}M_0, M_1\end{math} to the challenger.
-\item The challenger selects a bit \begin{math}b\in{0, 1}\end{math} uniformly at random.
-\item The adversary can then submit any number of selected plaintexts \begin{math}R_i, i\in N, |R| \geq 0\end{math}, so the challenger sends the ciphertext \begin{math}C_i = E(P_k, M_b||R_i)\end{math} back to the adversary.
-\item The adversary is free to perform any number of additional computations or encryptions, before finally guessing the value of \begin{math}b\end{math}.
+\begin{itemize} \item The challenger generates a pair \begin{math}P_k,
+S_k\end{math} and publishes \begin{math}P_k\end{math} to the adversary.  \item
+The adversary may perform a polynomially bounded number of encryptions or other
+operations.  \item Eventually, the adversary submits two distinct chosen
+plaintexts \begin{math}M_0, M_1\end{math} to the challenger.  \item The
+challenger selects a bit \begin{math}b\in{0, 1}\end{math} uniformly at random.
+\item The adversary can then submit any number of selected plaintexts
+\begin{math}R_i, i\in N, |R| \geq 0\end{math}, so the challenger sends the
+ciphertext \begin{math}C_i = E(P_k, M_b||R_i)\end{math} back to the adversary.
+\item The adversary is free to perform any number of additional computations or
+encryptions, before finally guessing the value of \begin{math}b\end{math}.
 \end{itemize}
 
-A cryptosystem is indistinguishable under partially chosen plaintext attack, if every probabilistic polynomial time adversary has only a negligible advantage on finding \begin{math}b\end{math} over random guessing. An adversary is said to have a negligible advantage if it wins the above game with probability \begin{math}\frac{1}{2} + \epsilon(k)\end{math}, where \begin{math}\epsilon(k)\end{math} is a negligible function in the security parameter \begin{math}k\end{math}.
+A cryptosystem is indistinguishable under partially chosen plaintext attack, if
+every probabilistic polynomial time adversary has only a negligible advantage on
+finding \begin{math}b\end{math} over random guessing. An adversary is said to
+have a negligible advantage if it wins the above game with probability
+\begin{math}\frac{1}{2} + \epsilon(k)\end{math}, where
+\begin{math}\epsilon(k)\end{math} is a negligible function in the security
+parameter \begin{math}k\end{math}.
 
-Intuitively, we can think that the adversary has the ability to modify the plaintext of a message, by appending a portion of data of his own choice to it, without knowledge of the plaintext itself. He can then acquire the ciphertext of the modified text and perform any kinds of computations on it. A system could then be described as IND-PCPA, if the adversary is unable to gain more information about the plaintext, than he could by guessing at random.
+Intuitively, we can think that the adversary has the ability to modify the
+plaintext of a message, by appending a portion of data of his own choice to it,
+without knowledge of the plaintext itself. He can then acquire the ciphertext of
+the modified text and perform any kinds of computations on it. A system could
+then be described as IND-PCPA, if the adversary is unable to gain more
+information about the plaintext, than he could by guessing at random.
 
 \subsection{IND-PCPA vs IND-CPA}
 
-Suppose the adversary submits the empty string as the chosen plaintext, a choice which is allowed by the definition of the game. The challenger would then send back the ciphertext \begin{math}C_i = E(P_k, M_b||"\ ") = E(P_k, M_b)\end{math}, which is the ciphertext described in the IND-CPA game. Therefore, if the adversary has the ability to beat the game of IND-PCPA, i.e. if the system is not indistinguishable under partially chosen plaintext attacks, he also has the ability to beat the game of IND-CPA. Thus we have shown that IND-PCPA is at least as strong as IND-CPA. The above intuitive proof could be expressed formally in future works.
+Suppose the adversary submits the empty string as the chosen plaintext, a choice
+which is allowed by the definition of the game. The challenger would then send
+back the ciphertext \begin{math}C_i = E(P_k, M_b||"\ ") = E(P_k, M_b)\end{math},
+which is the ciphertext returned from the challenger during the IND-CPA game.
+Therefore, if the adversary has the ability to beat the game of IND-PCPA, i.e. if
+the system is not indistinguishable under partially chosen plaintext attacks, he
+also has the ability to beat the game of IND-CPA. Thus we have shown that
+IND-PCPA is at least as strong as IND-CPA.
 
 \section{PCPA on compressed encrypted protocols}\label{sec:cepcpa}
 
-\subsection{Compression-before-encryption and vice versa}
-When having a system that applies both compression and encryption on a given plaintext, it would be interesting to investigate the order the transformations should be executed.
+\subsection{Compression-before-encryption and vice versa} When having a system
+that applies both compression and encryption on a given plaintext, it would be
+interesting to investigate the order the transformations should be executed.
 
-Lossless data compression algorithms rely on statistical patters to reduce the size of the data to be compressed, without losing information. Such a method is possible, since most real-world data has statistical redundancy. However, it can be understood from the above that such compression algorithms will fail to compress some data sets, if there is no statistical pattern to exploit.
+Lossless data compression algorithms rely on statistical patters to reduce the
+size of the data to be compressed, without losing information. Such a method is
+possible, since most real-world data has statistical redundancy. However, it can
+be understood from the above that such compression algorithms will fail to
+compress some data sets, if there is no statistical pattern to exploit.
 
-Encryption algorithms rely on adding entropy on the ciphertext produced. If the ciphertext contains repeated portions or statistical patterns, such behaviour can be exploited to deduce the plaintext.
+Encryption algorithms rely on adding entropy on the ciphertext produced. If the
+ciphertext contains repeated portions or statistical patterns, such behaviour
+can be exploited to deduce the plaintext.
 
-In the case that we apply compression after encryption, the text to be compressed should demostrate no statistical analysis exploits, as described above. That way compression will be unable to reduce the size of the data. In addition, compression after encryption does not increase the security of the protocol.
+In the case that we apply compression after encryption, the text to be
+compressed should demostrate no statistical analysis exploits, as described
+above. That way compression will be unable to reduce the size of the data. In
+addition, compression after encryption does not increase the security of the
+protocol.
 
-On the other hand, applying encryption after compression seems a better solution. The compression algorithm can exploit the statistical redundancies of the plaintext, while the encryption algorithm, if applied perfectly on the compressed text, should produce a random stream of data. Also, since compression also adds entropy, this scheme should make it harder for attackers who rely on differential cryptanalysis to break the system.
+On the other hand, applying encryption after compression seems a better
+solution. The compression algorithm can exploit the statistical redundancies of
+the plaintext, while the encryption algorithm, if applied perfectly on the
+compressed text, should produce a random stream of data. Also, since compression
+also adds entropy, this scheme should make it harder for attackers who rely on
+differential cryptanalysis to break the system.
 
 \subsection{PCPA scenario on compression-before-encryption protocol}
 
-Let's assume a system that composes encryption and compression in the following manner:
+Let's assume a system that composes encryption and compression in the following
+manner:
 
 \begin{math}c = Encrypt(Compress(m))\end{math}
 
-where \begin{math}c\end{math} is the ciphertext and \begin{math}m\end{math} is the plaintext.
+where \begin{math}c\end{math} is the ciphertext and \begin{math}m\end{math} is
+the plaintext.
 
-Suppose the plaintext contains a specific secret, among random strings of data, and the attacker can issue a PCPA with a chosen plaintext, which we will call reflection. The plaintext then takes the form:
+Suppose the plaintext contains a specific secret, among random strings of data,
+and the attacker can issue a PCPA with a chosen plaintext, which we will call
+reflection. The plaintext then takes the form:
 
 \begin{math}m = n_1 || secret || n_2 || reflection || n_3\end{math}
 
 where \begin{math}n_1, n_2, n_3\end{math} are random nonces.
 
-If the reflection is equal to the secret, the compression mechanism will recognize the pattern and compress the two portions. In other case, the two strings will not demonstrate any statistical redundancy and compression will perform worse. As a result, in the first case the data to be encrypted will be smaller than in the second case, thus demonstrating a pattern that the attacker can exploit.
+If the reflection is equal to the secret, the compression mechanism will
+recognize the pattern and compress the two portions. In other case, the two
+strings will not demonstrate any statistical redundancy and compression will
+perform worse. As a result, in the first case the data to be encrypted will be
+smaller than in the second case.
+
+Most commonly encryption is done by a stream or a block cipher. In the first
+case, the lengths of a plaintext and the corresponding ciphertext are identical,
+whereas in the second case they differ by the number of the padding bits, which
+is relatively small. That way, in the above case, an adversary could identify a
+pattern and extract information about the plaintext, based on the lengths of the
+two ciphertexts.

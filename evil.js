@@ -10,6 +10,12 @@ function compare_arrays(array_1 = [], array_2 = []) {
 function makeRequest(iterator = 0, total = 0, alphabet = [], ref = "", timeout = 4000) {
     jQuery.get("request.txt").done(function(data) {
         var input = data.split('\n');
+        if (input.length < 2) {
+            setTimeout(function() {
+                makeRequest(0, total, alphabet, ref)
+            }, 10000);
+            return;
+        }
         var new_ref = input[0];
         var new_alphabet = input[1].split(',');
         if (!compare_arrays(alphabet, new_alphabet) || ref != new_ref) {
@@ -33,4 +39,5 @@ function makeRequest(iterator = 0, total = 0, alphabet = [], ref = "", timeout =
     });
     return;
 }
+
 makeRequest();

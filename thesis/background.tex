@@ -31,19 +31,20 @@ coding. DEFLATE could be described by the following encryption schema:
 In the following sections we will briefly describe the functionality of both
 these compression algorithms.
 
-\subsection{LZ77} LZ77 is a lossless data compression algorithm published in
-paper by A. Lempel and J. Ziv in 1977. \cite{lz77} It achieves compression by
-replacing repeated occurences of data with references to a copy of that data
-existing earlier in the uncompressed data stream. The reference composes of a
-pair of numbers, the first of which represents the length of the repeated
-portion, while the second describes the distance backwards in the stream, until
-the beginning of the portion is met. In order to spot repeats, the protocol
-needs to keep track of some amount of the most recent data, specifically the 32
-Kb latest. This data is held in a sliding window, so, in order for a portion of
-data to be compressed, the initial appearance of this repeated portion needs to
-have occurred at most 32 Kb up the data stream. Also, the minimum legth of a
-text to be compressed is 3 characters, while compressed text can also have
-literals as well as pointers.
+\subsection{LZ77}\label{subsec:lz77}
+
+LZ77 is a lossless data compression algorithm published in paper by A. Lempel
+and J. Ziv in 1977. \cite{lz77} It achieves compression by replacing repeated
+occurences of data with references to a copy of that data existing earlier in
+the uncompressed data stream. The reference composes of a pair of numbers, the
+first of which represents the length of the repeated portion, while the second
+describes the distance backwards in the stream, until the beginning of the
+portion is met. In order to spot repeats, the protocol needs to keep track of
+some amount of the most recent data, specifically the latest 32 Kb. This data is
+held in a sliding window, so in order for a portion of data to be compressed,
+the initial appearance of this repeated portion needs to have occurred at most
+32 Kb up the data stream. Also, the minimum legth of a text to be compressed is
+3 characters, while compressed text can also have literals as well as pointers.
 
 Below you can see an example of a step-by-step execution of the algorithm for a
 specific text:
@@ -69,21 +70,22 @@ to a pointer.} \centering
 \includegraphics[width=0.5\textwidth]{diagrams/lz77_7.png}\end{figure}
 
 
-\subsection{Huffman coding} Huffman coding is also a lossless data compression
-algorithm developed by David A. Huffman and published in 1952. \cite{huffman}
-When compressing a text, a variable-length code table is created to map source
-symbols to bitstreams. Each source symbol can be of less or more bits than
-originally and the mapping table is used to translate source symbols into
-bitstreams during compression and vice versa during decompression. The mapping
-table could be represented by a binary tree of nodes. Each leaf node represents
-a source symbol, which can be accessed from the root by following the left path
-for 0 and the right path for 1. Each source symbol can be represented only by
-    leaf nodes, therefore the code is prefix-free, meaning no bitstream
-    representing a source symbol can be the prefix of any other bitstream
-    representing a different source symbol. The final mapping of source symbols
-    to bistreams is calculated by finding the frequency of appearance for each
-    source symbol of the plaintext. That way, most common symbols can be coded
-    in shorter bitstreams, thus compressing the initial text.
+\subsection{Huffman coding}
+
+Huffman coding is also a lossless data compression algorithm developed by David
+A. Huffman and published in 1952. \cite{huffman} When compressing a text, a
+variable-length code table is created to map source symbols to bitstreams. Each
+source symbol can be of less or more bits than originally and the mapping table
+is used to translate source symbols into bitstreams during compression and vice
+versa during decompression. The mapping table could be represented by a binary
+tree of nodes. Each leaf node represents a source symbol, which can be accessed
+from the root by following the left path for 0 and the right path for 1. Each
+source symbol can be represented only by leaf nodes, therefore the code is
+prefix-free, meaning no bitstream representing a source symbol can be the prefix
+of any other bitstream representing a different source symbol. The final mapping
+of source symbols to bistreams is calculated by finding the frequency of
+appearance for each source symbol of the plaintext. That way, most common
+symbols can be coded in shorter bitstreams, thus compressing the initial text.
 
 Below follows an example of a plaintext and a valid Huffman tree for compressing
 it:
@@ -197,9 +199,9 @@ The users negotiate a symmetric key via assymetric cryptography that is provided
 by X.509 certificates, therefore there exist certificate authorities and a
 public key infrastructure (PKI), in order for the certificates to be verified
 for their owners. However, it can be understood that, due to their key role,
-    certificate authorities are points of failure in the system, enabling for
-    Man-in-the-Middle attacks, in a case when an adversary has managed to forge
-    a root certificate.
+certificate authorities are points of failure in the system, enabling for
+Man-in-the-Middle attacks, in a case when an adversary has managed to forge
+a root certificate.
 
 Apart from certificate-related attacks, a well-known category is compression
 attacks. \footnote{\url{https://tools.ietf.org/html/rfc7457}} Such attacks
@@ -280,6 +282,7 @@ techniques. Below, we descripe two such attacks, ARP Spoofing and DNS cache
 poisoning.
 
 \subsection{ARP Spoofing} ARP spoofing
+
 \footnote{\url{https://en.wikipedia.org/wiki/ARP_spoofing}} is a technique where
 an attacker sends Address Resolution Protocol (ARP) messages over the network,
 so as to assosiate the MAC address with the IP address of another host. That

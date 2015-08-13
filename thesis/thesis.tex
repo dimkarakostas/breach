@@ -183,7 +183,7 @@
 	backgroundcolor=\color{white},
 	basicstyle=\small\ttfamily,		% style for code
 	breakatwhitespace=false,        % sets if automatic breaks should only
-									% happen at whitespace
+					% happen at whitespace
 	breaklines=true,                % sets automatic line breaking
 	captionpos=b,                   % sets the caption-position to bottom
 	commentstyle=\color{mygreen},   % style for comments
@@ -205,26 +205,19 @@
 
 % Define specific rules for each language
 
-\lstdefinestyle{c}
-{
-	language=C,
-	tabsize=4
-}
-
-\lstdefinestyle{haskell}
-{
-	language=Haskell
-}
-
-\lstdefinestyle{ruby}
-{
-	language=Ruby
-}
-
-\lstdefinestyle{erlang}
-{
-	language=Erlang.
-	captionpos=
+\lstdefinelanguage{js}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
 }
 
 \lstdefinestyle{plain}
@@ -234,35 +227,20 @@
 
 % Create new commands for simpler usage
 
-\newcommand\ccode[2]{
-	\lstinputlisting[float=h!, style=c, caption={#1}, label=lst:#2]{src/#2}
+\newcommand\pcode[2]{
+	\lstinputlisting[language=python, caption={#1},label=lst:#2]{src/#2}
 }
 
-\newcommand\pcode[2]{
-	\lstinputlisting[float=h!, language=Python, caption={#1},label=lst:#2]{src/#2}
+\newcommand\jscode[2]{
+	\lstinputlisting[language=js, caption={#1},label=lst:#2]{src/#2}
 }
 
 \newcommand\bcode[2]{
-	\lstinputlisting[float=h!, language=bash, caption={#1},label=lst:#2]{src/#2}
-}
-\newcommand\cccode[2]{
-	\lstinputlisting[style=c, caption={#1}, label=lst:#2]{src/#2}
-}
-
-\newcommand\haskellcode[3]{
-	\lstinputlisting[style=haskell, caption={#1}, label=lst:#2]{src/#3}
-}
-
-\newcommand\rubycode[2]{
-	\lstinputlisting[style=ruby, caption={#1}, label=lst:#1]{src/#2}
-}
-
-\newcommand\erlangcode[2]{
-	\lstinputlisting[style=erlang, caption={#1}, label=lst:#1]{src/#1}
+	\lstinputlisting[language=bash, caption={#1},label=lst:#2]{src/#2}
 }
 
 \newcommand\plaintext[2]{
-	\lstinputlisting[float=h!, style=plain, caption={#1},
+	\lstinputlisting[style=plain, caption={#1},
 	label=lst:#2]{src/#2}
 }
 
@@ -326,6 +304,8 @@
 %\include{intro}
 \include{background}
 \include{pcpa}
+\include{attack_model}
+\include{appendix_code}
 \backmatter
 \cleardoublepage % start at the next odd page
 \phantomsection % correct hyperlinking

@@ -115,3 +115,52 @@ whereas in the second case they differ by the number of the padding bits, which
 is relatively small. That way, in the above case, an adversary could identify a
 pattern and extract information about the plaintext, based on the lengths of the
 two ciphertexts.
+
+\section{Known PCPA exploits}\label{sec:known_pcpa}
+
+\subsection{CRIME}
+
+"Compression Ratio Info-leak Made Easy" (CRIME) \cite{crime} is a security exploit
+that was revealed at the 2012 \href{https://www.ekoparty.org}{ekoparty}. As
+described, "it decrypts HTTPS traffic to steal cookies and hijack sessions".
+
+In order for the attack to succeed, there are two requirements. Firstly, the
+attacker should be able to sniff the victim's network, so as to see the
+request/response packet lengths. Secondly, the victim should visit a website
+controlled by the attacker or surf on non-HTTPS sites, in order for the CRIME
+JavaScript to be executed.
+
+If the above requirements are met, the attacker makes a guess for the secret to
+be stolen and asks the browser to send a request with this guess as the path.
+The attacker can then observe the length of the request and, if the length is
+less than usual, it is assumed that the guess string was compressed with the
+secret, so it was correct.
+
+CRIME has been mitigated by disabling TLS and SPDY compression on both Chrome
+and Firefox browsers, as well as various server software packages. However, HTTP
+compression is still supported, while some web servers that still support TLS
+compression are also vulnerable.
+
+\subsection{BREACH}
+
+"Browser Reconnaissance and Exfiltration via Adaptive Compression of Hypertext"
+(BREACH) \cite{breach} is a security exploit built based on CRIME. Presented at
+the August 2013 \href{https://www.blackhat.com}{Black Hat} conference, it
+targets the size of compressed HTTP responses and extracts secrets hidden in the
+response body.
+
+Like the CRIME attack, the attacker needs to sniff the victim's network traffic,
+as well as force the victim's browser to issue requests on the chosen endpoint.
+Additionally, the original attack works against stream ciphers only, it assumes
+zero noise in the response, as well as a known prefix for the secret, although a
+solution would be to guess the first two characters of the secret, in order to
+bootstrap the attack.
+
+From then on, the methodology is the same in general as CRIME's. The attacker
+guesses a value, which is then included in the response body along with the
+secret and, if correct, it is compressed well with it, resulting in smaller
+response length.
+
+BREACH has not yet been fully mitigated, although Gluck, Harris and Prado
+proposed various counter measures for the attack. We will investigate these
+mitigation techniques in depth in Chapter \ref{ch:mitigation}.

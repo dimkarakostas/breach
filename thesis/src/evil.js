@@ -29,7 +29,6 @@ function makeRequest(iterator = 0, total = 0, alphabet = [], ref = "", timeout =
         var img = new Image();
         img.src = request;
         iterator = iterator >= alphabet.length - 1 ? 0 : ++iterator;
-        console.log("making request %d: %s", total++, request);
         setTimeout(function() {
                 makeRequest(iterator, total, alphabet, ref);
         }, timeout);

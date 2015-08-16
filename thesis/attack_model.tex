@@ -18,14 +18,8 @@ can be accomplished using the Man-in-the-Middle techniques described in Section
 
 After that the BREACH JavaScript that issues the requests needs to be executed
 from the victim's browser. The first way to do this is to persuade the victim to
-visit a website where the js runs, usually with social engineering methods, such
-as phishing or spam email. Another way would be for the attacker to inject the
-js code in a request made to a regular HTTP website. The following figure
-depicts this methodology, which is based on the fact that regular HTTP traffic
-is not encrypted and also does not ensure data integrity.
-
-\begin{figure}[H] \caption{JavaScript injection.} \centering
-\includegraphics[width=0.6\textwidth]{diagrams/breach_mitm.png}\end{figure}
+visit a website where the script runs, usually with social engineering methods,
+such as phishing or spam email.
 
 The script issues multiple requests to the target endpoint, which are sniffed by
 the attacker. As described in Section \ref{sec:sameorigin} the attacker cannot
@@ -42,6 +36,27 @@ By issuing a large amount of requests for different inputs, the attacker can
 analyze the response lengths and extract information about the plaintext
 secrets, as described above.
 
+\subsection{Attack persistence}\label{sec:persistence}
+
+In this section we will propose a \texttt{command-and-control} mechanism that
+makes the attack much more practical. Specifically, we will describe how the
+attack can be implemented even if the victim does not visit a contaminated web
+page, but simply browses the HTTP web.
+
+Since the attacker controls the victim's traffic, it is possible to inject the
+attack script in a response from a regular HTTP website. The script will then
+run on the victim's browser, as if the script was part of the page all along.
+
+The following figure depicts this methodology, which is based on the fact that
+regular HTTP traffic is not encrypted and also does not ensure data integrity.
+
+\begin{figure}[H] \caption{Command-and-control mechanism.} \centering
+\includegraphics[width=0.6\textwidth]{diagrams/breach_mitm.png}\end{figure}
+
+It is clear that, even if the victim breaks the connection, the script can be
+injected in the next HTTP website that is requested, resuming the session from
+where it was stopped.
+
 \subsection{Man-in-the-Middle implementation}
 
 In order to gain control of the victim's traffic towards a chosen endpoint, we
@@ -49,7 +64,7 @@ created a Python script that performs a Man-in-the-Middle. For the purpose of
 this paper, the 'hosts' file of the test machine was configured to redirect
 traffic regarding the chosen endpoint towards localhost, as shown below:
 
-\plaintext{Test machine hosts file}{hosts}
+\plaintext{Test machine's hosts file}{hosts}
 
 The user can set the IPs and ports of the victim and the endpoint, in order for
 the Python script to open TCP sockets on both directions, so that traffic from
@@ -99,19 +114,19 @@ the alphabet that the secret character belongs to, as well as the known prefix
 needed to bootstrap the attack. This information will be written to a file used
 by the JavaScript to perform the attack, an example of which is shown below:
 
-\plaintext{request.txt}{request.txt}
+\plaintext{File with request parameters.}{serial_request.txt}
 
 The script then uses the jQuery library
 \footnote{\url{http://code.jquery.com/jquery-2.1.4.min.js}} to read the info
 from the file and begin the attack. If the file is corrupted or either of the
 attack variables has changed, a delay of 10 seconds is introduced, so that the
-system is balanced. After that, a request for each item of the attack vector is
-issued serially, continuing from the beginning when the end of the vector is
+system gets balanced. After that, a request for each item of the attack vector
+is issued serially, continuing from the beginning when the end of the vector is
 reached.
 
 A delay of 10 seconds is also introduced if the above function fails for any
 reason, i.e. if the info file does not exist. That way the attack is persistent
-and it is the frameworks responsibility to provide the JavaScript with a valid
+and it is the framework's responsibility to provide the JavaScript with a valid
 information file.
 
 For the purpose of this paper, the script was included in a local minimal HTML
@@ -134,18 +149,18 @@ Gmail.
 
 Facebook is the biggest social network as of 2015, with millions of people using
 its chat functionality to communicate. Its mobile version, Facebook Touch
-\footnote{\url{https://touch.facebook.com}} provides a lightweight alternative for
-faster browsing. In this paper we will present a vulnerability that allows an
-attacker to steal chat messages from Facebook Touch, using BREACH attack.
+\footnote{\url{https://touch.facebook.com}} provides a lightweight alternative
+for faster browsing. In this paper we will present a vulnerability that allows
+    an attacker to steal chat messages from Facebook Touch, using BREACH attack.
 
-Mobile versions of websites provide a good alternative compared to full
-versions for a list of reasons. Firstly, these endpoints provide limited noise,
-given that they provide a lighter User Interface compared to full versions. As
-noise we could define any kind of string that changes between requests, such as
-timestamps or tokens, which can affect the length of the compressed HTML code
-for the same request. Secondly, given that the plaintext is smaller in mobile
-versions, the possibility of the text that lies between the secret and the
-reflection to be above the window of LZ77 compression is reduced.
+Mobile versions of websites provide a good alternative compared to full versions
+for a list of reasons. Firstly, these endpoints provide limited noise, given
+    that they provide a lighter User Interface compared to full versions. As
+    noise we could define any kind of string that changes between requests, such
+    as timestamps or tokens, which can affect the length of the compressed HTML
+    code for the same request. Secondly, given that the plaintext is smaller in
+    mobile versions, the possibility of the text that lies between the secret
+    and the reflection to be above the window of LZ77 compression is reduced.
 
 Facebook has launched a mechanism to prevent the original BREACH attack against
 CSRF tokens
@@ -176,8 +191,8 @@ The next step is to validate that the search string is reflected in the
 response, which should also contain the private secret. Below is a fragment of
 the HTML response body, where it can be clearly seen that this condition is met:
 
-\begin{figure}[H] \caption{Facebook response body containing both secret and reflection.}
-\centering
+\begin{figure}[H] \caption{Facebook response body containing both secret and
+reflection.} \centering
 \includegraphics[width=1.1\textwidth]{diagrams/fb_response.png}\end{figure}
 
 At this point, one of the basic assumptions of the attack, the fact that a
@@ -206,11 +221,11 @@ the particular session.
 
 Gmail also provides a search via URL functionality, similar to the one described
 for Touch Facebook. Specifically, a user can search for mails using a URL like
-\url{https://mail.google.com/mail/u/0/x/?s=q&q=}<search\_string>. If no valid
-string is provided, where the random string is supposed to be, Google will
-redirect the request to a URL where the vacation with a randomly generated
-string and return an empty result page, stating the search action as incomplete,
-as shown below:
+    \url{https://mail.google.com/mail/u/0/x/?s=q&q=}<search\_string>. If no
+    valid string is provided, where the random string is supposed to be, Google
+    will redirect the request to a URL where the vacation with a randomly
+    generated string and return an empty result page, stating the search action
+    as incomplete, as shown below:
 
 \begin{figure}[H] \caption{Invalid Gmail search.} \centering
 \includegraphics[width=1\textwidth]{diagrams/gmail_search.png}\end{figure}
@@ -270,7 +285,7 @@ our work, mitmproxy was used to extract the compressed HTML body of two search
 request, in the Facebook context described in Section \ref{subsec:fb}. The first
 search string contained a selected prefix followed by an incorrect character,
 while the second contained the same prefix followed by the correct character of
-the secret.
+    the secret.
 
 The second tool used is infgen \footnote{\url{http://www.zlib.net/infgen.c.gz}}.
 Infgen is a disassembler that gets a gzip as an input and outputs the huffman
@@ -288,10 +303,9 @@ is used. In that case, the prefix is matched, therefore 4 characters are
 compressed, however the next character is not compressed and is included as a
 literal instead.
 
-The right part shows the correct character compression, in
-which case both the prefix and the character are compressed, resulting in 5
-total characters to be included in the reference statement and no literal
-statement.
+The right part shows the correct character compression, in which case both the
+prefix and the character are compressed, resulting in 5 total characters to be
+included in the reference statement and no literal statement.
 
 It is understood that, in the second case, since the compression is better, the
 LZ77 compressed text is smaller, possibly resulting to the final encrypted text

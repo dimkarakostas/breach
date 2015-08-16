@@ -30,7 +30,6 @@
 \usepackage{paralist}
 \usepackage{ulem}
 \usepackage{tocvsec2}
-\usepackage{url}
 \usepackage[toc,page]{appendix}
 % FONT SETTINGS ===============================================================
 
@@ -289,10 +288,10 @@
 \setlength{\parindent}{\templen}
 \setlength{\parskip}{0pt}
 \tableofcontents
-%\listoffigures
+\listoffigures
 %\listoftables
-%\renewcommand{\lstlistlistingname}{List of Listings}
-%\lstlistoflistings % changed the title above
+\renewcommand{\lstlistlistingname}{List of Listings}
+\lstlistoflistings % changed the title above
 
 \mainmatter
 % moved these two commands here so that they don't influence the toc
@@ -301,10 +300,14 @@
 
 \renewcommand\floatpagefraction{.7}
 
-%\include{intro}
+\include{intro}
 \include{background}
 \include{pcpa}
 \include{attack_model}
+\include{statistic}
+\include{experiment}
+\include{mitigation}
+\include{conclusion}
 \include{appendix_code}
 \backmatter
 \cleardoublepage % start at the next odd page

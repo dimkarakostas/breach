@@ -135,7 +135,7 @@ def read_chunked(fp, limit, is_request):
                 raise HttpError(code, "Malformed chunked body")
             
             t = open("chunked", "a") #TODO: jim
-	    g = open("breach.log", "a")
+	        g = open("breach.log", "a")
             t.write(chunk)
             t.write("__CHUNKING__-----------------------------------------__CHUNKING__")
             g.write("__CHUNKING__-----------------------------------------__CHUNKING__")

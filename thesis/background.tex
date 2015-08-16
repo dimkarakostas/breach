@@ -49,28 +49,28 @@ the initial appearance of this repeated portion needs to have occurred at most
 Below you can see an example of a step-by-step execution of the algorithm for a
 specific text:
 
-\begin{figure}[H] \caption{First we get the plaintext to be compressed.}
+\begin{figure}[H] \caption{Step 1: Plaintext to be compressed}
 \centering
 \includegraphics[width=0.5\textwidth]{diagrams/lz77_1.png}\end{figure}
-\begin{figure}[H] \caption{Compression starts with literal representation.}
+\begin{figure}[H] \caption{Step 2: Compression starts with literal representation}
 \centering
 \includegraphics[width=0.35\textwidth]{diagrams/lz77_2.png}\end{figure}
-\begin{figure}[H] \caption{We then use a pointer at distance 26 and length 16.}
+\begin{figure}[H] \caption{Step 3: Use a pointer at distance 26 and length 16}
 \centering
 \includegraphics[width=0.35\textwidth]{diagrams/lz77_3.png}\end{figure}
-\begin{figure}[H] \caption{We continue with literal.} \centering
+\begin{figure}[H] \caption{Step 4: Continue with literal} \centering
 \includegraphics[width=0.35\textwidth]{diagrams/lz77_4.png}\end{figure}
-\begin{figure}[H] \caption{We use a pointer pointing to a pointer.} \centering
+\begin{figure}[H] \caption{Step 5: Use a pointer pointing to a pointer} \centering
 \includegraphics[width=0.35\textwidth]{diagrams/lz77_5.png}\end{figure}
-\begin{figure}[H] \caption{We then use a pointer pointing to a pointer pointing
-to a pointer.} \centering
+\begin{figure}[H] \caption{Step 6: Use a pointer pointing to a pointer pointing
+to a pointer} \centering
 \includegraphics[width=0.35\textwidth]{diagrams/lz77_6.png}\end{figure}
-\begin{figure}[H] \caption{Finally, we use a pointer pointing to itself.}
+\begin{figure}[H] \caption{Step 7: Use a pointer pointing to itself}
 \centering
 \includegraphics[width=0.5\textwidth]{diagrams/lz77_7.png}\end{figure}
 
 
-\subsection{Huffman coding}
+\subsection{Huffman coding}\label{subsec:huffman}
 
 Huffman coding is also a lossless data compression algorithm developed by David
 A. Huffman and published in 1952. \cite{huffman} When compressing a text, a
@@ -90,7 +90,7 @@ symbols can be coded in shorter bitstreams, thus compressing the initial text.
 Below follows an example of a plaintext and a valid Huffman tree for compressing
 it:
 
-\bigskip \centerline{\textit{\textbf{Chancellor on bring of second bailout for
+\bigskip \centerline{\textit{\textbf{Chancellor on brink of second bailout for
 banks}} \footnote{\url{https://en.bitcoin.it/wiki/Genesis_block}}}
 
 \bigskip \centerline{\textbf{Frequency Analysis}}
@@ -214,7 +214,7 @@ details, especially handshake and the format of TLS records.
 
 \subsection{TLS handshake}
 
-\begin{figure}[H] \caption{TLS handshake flow.} \centering
+\begin{figure}[H] \caption{TLS handshake flow} \centering
 \includegraphics[width=0.7\textwidth]{diagrams/tls_handshake.png}\end{figure}
 
 This sequence diagram presents the functionality of TLS handshake. User and
@@ -234,7 +234,7 @@ purpose of this paper.
 
 \subsection{TLS record}
 
-\begin{figure}[H] \caption{TLS record.} \centering
+\begin{figure}[H] \caption{TLS record} \centering
 \includegraphics[width=1\textwidth]{diagrams/tls_record.png}\end{figure}
 
 The above figure
@@ -281,15 +281,16 @@ authentication or PKIs. However, some attacks manage to bypass such mitigation
 techniques. Below, we descripe two such attacks, ARP Spoofing and DNS cache
 poisoning.
 
-\subsection{ARP Spoofing} ARP spoofing
+\subsection{ARP Spoofing}
 
-\footnote{\url{https://en.wikipedia.org/wiki/ARP_spoofing}} is a technique where
-an attacker sends Address Resolution Protocol (ARP) messages over the network,
-so as to assosiate the MAC address with the IP address of another host. That
-way, the attacker may intercept the traffic of the network, modify or deny
-packets, performing denial of service, MitM or session hijacking attacks.
+ARP spoofing \footnote{\url{https://en.wikipedia.org/wiki/ARP_spoofing}} is a
+technique where an attacker sends Address Resolution Protocol (ARP) messages
+over the network, so as to assosiate the MAC address with the IP address of
+another host. That way, the attacker may intercept the traffic of the network,
+modify or deny packets, performing denial of service, MitM or session hijacking
+attacks.
 
-\begin{figure}[H] \caption{Arp Spoofing.} \centering
+\begin{figure}[H] \caption{Arp Spoofing} \centering
 \includegraphics[width=0.8\textwidth]{diagrams/arp_spoofing.png}\end{figure}
 
 ARP spoofing can be also used for legitimate reasons, when a developer needs to
@@ -299,7 +300,7 @@ parties to forward traffic for monitoring.
 
 \subsection{DNS spoofing}
 
-\begin{figure}[H] \caption{DNS Spoofing.} \centering
+\begin{figure}[H] \caption{DNS Spoofing} \centering
 \includegraphics[width=0.5\textwidth]{diagrams/dns_spoofing.png}\end{figure}
 
 DNS spoofing (or DNS cache poisoning) is an attack, when the adversary

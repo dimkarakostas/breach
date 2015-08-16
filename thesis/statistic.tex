@@ -1,0 +1,215 @@
+\chapter{Statistical methods}\label{ch:statistic}
+
+Gluck, Harris and Prado, in the original BREACH paper, investigated the attack
+on stream ciphers, such as RC4. They also suggested that block ciphers are
+vulnerable, without providing practical attack details. However, the use of RC4
+is prohibited in negotiation between servers and clients \cite{rc4_prohibit}.
+
+In this paper we perform practical attacks against popular block ciphers, by
+using statistical methods to by-pass noise created from random portions of data
+stream or the Huffman coding. Also, we propose various optimization techniques
+that can make the attack much more efficient.
+
+\section{Probabilistic techniques}\label{sec:probabilistic}
+
+Block ciphers provide a greater challenge compared to stream ciphers, when it
+comes to telling length apart, since stream ciphers provide better granularity.
+In this work we use statistical techniques to overcome this problem.
+
+Furthermore, Huffman coding may affect the length of the compressed data stream.
+Since the attacker's chosen plaintext is included in the plaintext, it might
+affect the character frequency, resulting to different Huffman tables and
+subsequently different length.
+
+\subsection{Attack on block ciphers}
+
+Block ciphers are the most common used ciphers in modern websites. Especially
+AES \cite{aes} is used in major websites such as Facebook, Google, Twitter,
+Wikipedia, YouTube, Amazon and others. In this paper we introduce methods to
+attack such block ciphers, using the attack model described in Chapter
+\ref{ch:attack}.
+
+First of all, packet stream for a specific endpoint needs to be examined, in
+order to find patterns and better understand the distribution of the data stream
+on TLS records and TCP packets. In the following figures can be seen two request
+streams, for Facebook Touch and for Gmail respectively.
+
+\begin{figure}[H] \caption{Facebook flow} \centering
+\includegraphics[width=0.6\textwidth]{diagrams/facebook_request_flow.png}\end{figure}
+
+\begin{figure}[H] \caption{Gmail flow} \centering
+\includegraphics[width=0.6\textwidth]{diagrams/gmail_request_flow.png}\end{figure}
+
+A close look on the above record stream reveals interesting information about
+the pattern of multiple requests on the same endpoint.
+
+Specifically, the first figures shows two consequent requests on the search
+method of Facebook Touch. The two requests follow the attack model and it can be
+seen that they differ only in a single TLS record, regarding the record lengths.
+
+At this point it would be safe to assume that the specific record that differs
+in the two requests is the one containing the attacker's chosen plaintext. In
+order to confirm this, mitmproxy can again be used along with the MitM proxy we
+have developed.
+
+Mitmproxy uses netlib as a data-link library. Netlib's "read\_chunked" function
+performs the reading of the TLS record fragments. We added "print markers" in
+this function, which mark the log that contains the packet flow passing through
+our BREACH proxy and also provides the sectors that the plaintext is divided
+before compression. Comparing the log with the decrypted, decompressed chunks of
+plaintext we have confirmed that the sector of the plaintext that contains the
+reflection is the one that differs in the length flow.
+
+The above flows provide another interesting deduction. If the implementation of
+the block cipher was as expected, each record should have been of length that is
+a product of 128 bits, equally 16 bytes, and, consequently, the two records that
+differ should have had the same length or differ on a product of 128 bits.
+However, that is not the case here.
+
+In order to further investigate the implementation of block cipher, we have
+issued the attack on multiple operating systems, networks and browsers. The
+parameter that seemed to demonstrate similar behaviour on these cases was the
+browser, where for different OSs and networks the packet flow was structurally
+the same for the same browser version.
+
+In the following figures we present the two distinct packet flow structures that
+were observed during the experiments on different browsers and versions.
+
+\begin{figure}[H] \caption{Older browser version} \centering
+\includegraphics[width=0.4\textwidth]{diagrams/older_browser_version.png}\end{figure}
+
+\begin{figure}[H] \caption{Newer browser version} \centering
+\includegraphics[width=0.4\textwidth]{diagrams/newer_browser_version.png}\end{figure}
+
+In the older versions of browsers, the packet that contains the reflection is
+the one with length 1122 for the first request and 1125 for the second request.
+Each request of the flow shows a difference of a few bytes, that don't exceed 10
+at any time.
+
+In newer versions of browsers, the packet that contains the reflection is of
+length 418 for the first request and 424 for the second. In that case, the
+difference could be tens or hundreds of bytes for two requests.
+
+Browsers that were used, Mozilla Firefox, Google Chrome, Chromium and Iceweasel,
+use Mozilla's Network Security Services (NSS) library for the implementation of
+TLS. Following the above discoveries, we have found that the first pattern was
+demonstrated in browser versions that used NSS 3.17.3 release or older, whereas
+the second pattern was found on browsers that used newer NSS releases. Since
+that release fixed "Bug 1064670 - (CVE-2014-1569) ASN.1 DER decoding of lengths
+is too permissive, allowing undetected smuggling of arbitrary data"
+\footnote{\url{https://bugzilla.mozilla.org/show_bug.cgi?id=1064670}}, we could
+assume that it was that bug that was responsible for that behaviour. However,
+further investigation needs to be done, in order to determine why the block
+cipher implementation does not follow the theoretical standards.
+
+In any case, the above patterns allow us to use statistical methods to extract
+conclusions regarding the length. Specifically, by issuing hundreds or thousands
+of requests for the same string and calculating the mean length of the
+responses, the correct symbol should converge in a smaller mean length that an
+incorrect. This method also allows us to bypass noise introduced by random
+strings in the HTML body.
+
+\subsection{Huffman fixed-point}
+
+Huffman coding, as described in Section \ref{subsec:huffman}, uses letter
+frequency in order to produce a lossless compression of the data stream. By
+inserting a chosen plaintext in the data stream, the attacker would affect this
+frequency, propably resulting in differentiated Huffman table and affecting the
+length of the compressed stream altogether.
+
+In this section we will describe a methodology to bypass the noise introduced by
+Huffman coding. In particular, we present a way for two different requests, in
+the same stage of the attack, to demonstrate the same letter frequencies, so
+that the attack itself does not affect the Huffman table of the compression.
+
+Initially, an alphabet pool is created, containing every item of the alphabet
+that the secret belongs to. The key point lies in the fact that Huffman coding
+does not take into account the position of the letters, only the frequency of
+appearance.
+
+So, if for instance the alphabet is made of the decimal digits, two different
+requests can be crafted as below:
+
+\begin{figure}[H] \caption{Huffman fixed-point.} \centering
+\includegraphics[width=0.8\textwidth]{diagrams/huffman_fixed_point.png}\end{figure}
+
+As can be seen, the frequency of each letter is not affected from one request to
+the other, although rearranging the position allows us to perform the attack.
+
+The above figure also depicts the use of random nonces before and after the main
+body of the request, in this case "rynmkwi" and "znq" respectively. These nonces
+are used so as to avoid the Huffman fixed-point prefix or the character tested
+to be compressed, with LZ77, with strings before , in this case "?q=", or after
+the request, and affecting the consistency of the tests.
+
+Our implementation of the above is found in the request initialization library
+\ref{sec:hillclimbing_py}. A user needs to input a chosen prefix for the
+bootstraping and an alphabet pool from some predefined alphabets (uppercase
+letters, lowercase letters, decimal digits and dashes), as well as serial or
+parallel method of attack (serial by default). The functions of the library will
+then create the appropriate request file that can be used with BREACH JavaScript
+to issue the attack.
+
+\section{Attack optimization}\label{sec:optimize}
+
+The previous chapters have focused on expanding and explaining how the attack
+could be a viable threat in real world applications. However, work still needs to be
+done, in order to make it faster and minimize the margin of error.
+
+In this section we will describe two methods that allow for the attack to
+perform better, parallelization of hill-climbing and cross-domain
+parallelization.
+
+\subsection{Parallelization of hill-climbing}
+
+Up to this point, the characters of the alphabet are tested serially, one after
+the other and beginning from top when the end of the alphabet is reached.
+However, a more efficient method could be followed, that could reduce the time
+of the attack from \begin{math}O(|S|)\end{math} to
+\begin{math}O(log|S|)\end{math}.
+
+The idea behind this method is based on the well-known \texttt{divide-and-conquer}
+paradigm. Specifically, instead of using one test character, concatenated with
+the known prefix, each time, we could divide the alphabet pool in half and issue
+requests on each such half. A request file parameterized as such is the
+following:
+
+\plaintext{File with parallelized request parameters.}{parallel_request.txt}
+
+Using this method, for each step of the attack two different requests are made.
+The first regards to one half of the alphabet and the second to the other half.
+
+Whichever half minimizes the length function is safe to assume that contains the
+correct secret, so it is chosen and the same method applies to it. That way we
+use binary searching techniques, dropping the attack factor as mentioned.
+
+The conditions for Huffman-induced noise and collateral compression are also met
+here, using the alphabet pool and the random nonces. Also, in case of combined
+alphabets, such as lowercase letters, uppercase letters and digits, it could be
+possible that biases were introduced regarding the different types, i.e.
+lowercase letters could be favored over uppercase ones. We also bypass this issue
+by dividing the alphabet alternately, instead of consecutively.
+
+\subsection{Cross-domain parallelization}
+
+The tree structure of the Domain Name System (DNS)
+\footnote{\url{https://en.wikipedia.org/wiki/Domain_Name_System}} defines each
+non-resourse record node as being a domain name. Each domain that is part of a
+larger domain is called subdomain.
+
+Most websites use subdomains for specific applications, that hold a certain role
+in the context of the basic web application. Most commonly, subdomains are used
+to define language versions of the website, mobile versions or divisions of a
+larger organization, such as Schools in a University.
+
+The existence of different subdomains can be used in the context of the attack
+to make it more efficient. In that case, multiple subdomains should handle same
+or similar data containing the secret. If cookies are available on the parent
+domain, they are also available in the subdomains and can be used from the
+attacker.
+
+Specifically, via DNS poisoning different subdomains can resolve to different
+IPs. The source and destination IP information is included in the Transport
+Layer of the network, so it can be seen by an eavesdropper or a MitM. The
+attack can be issued then on both domains, effectively parallelizing it with up
+to Nx efficiency, where N is the number of different domains and subdomains.

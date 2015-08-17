@@ -1,5 +1,5 @@
 import sys
-from io_library import get_arguments_dict
+from iolibrary import get_arguments_dict
 from constants import DIGIT, LOWERCASE, UPPERCASE, DASH, NONCE_1, NONCE_2
 
 def create_alphabet(alpha_types):

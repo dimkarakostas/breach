@@ -49,24 +49,23 @@ the initial appearance of this repeated portion needs to have occurred at most
 Below you can see an example of a step-by-step execution of the algorithm for a
 specific text:
 
-\begin{figure}[H] \caption{Step 1: Plaintext to be compressed}
-\centering
+\begin{figure}[H] \caption{Step 1: Plaintext to be compressed} \centering
 \includegraphics[width=0.5\textwidth]{diagrams/lz77_1.png}\end{figure}
-\begin{figure}[H] \caption{Step 2: Compression starts with literal representation}
-\centering
+\begin{figure}[H] \caption{Step 2: Compression starts with literal
+representation} \centering
 \includegraphics[width=0.35\textwidth]{diagrams/lz77_2.png}\end{figure}
 \begin{figure}[H] \caption{Step 3: Use a pointer at distance 26 and length 16}
 \centering
 \includegraphics[width=0.35\textwidth]{diagrams/lz77_3.png}\end{figure}
 \begin{figure}[H] \caption{Step 4: Continue with literal} \centering
 \includegraphics[width=0.35\textwidth]{diagrams/lz77_4.png}\end{figure}
-\begin{figure}[H] \caption{Step 5: Use a pointer pointing to a pointer} \centering
+\begin{figure}[H] \caption{Step 5: Use a pointer pointing to a pointer}
+\centering
 \includegraphics[width=0.35\textwidth]{diagrams/lz77_5.png}\end{figure}
 \begin{figure}[H] \caption{Step 6: Use a pointer pointing to a pointer pointing
 to a pointer} \centering
 \includegraphics[width=0.35\textwidth]{diagrams/lz77_6.png}\end{figure}
-\begin{figure}[H] \caption{Step 7: Use a pointer pointing to itself}
-\centering
+\begin{figure}[H] \caption{Step 7: Use a pointer pointing to itself} \centering
 \includegraphics[width=0.5\textwidth]{diagrams/lz77_7.png}\end{figure}
 
 
@@ -91,7 +90,7 @@ Below follows an example of a plaintext and a valid Huffman tree for compressing
 it:
 
 \bigskip \centerline{\textit{\textbf{Chancellor on brink of second bailout for
-banks}} \footnote{\url{https://en.bitcoin.it/wiki/Genesis_block}}}
+banks}}\footnote{\url{https://en.bitcoin.it/wiki/Genesis_block}}}
 
 \bigskip \centerline{\textbf{Frequency Analysis}}
 
@@ -141,9 +140,9 @@ Cross-site scripting (XSS) is a security vulnerability that allows an adversary
 to inject client-side script into web pages viewed by other users. That way,
 same-origin policy can be bypassed and sensitive data handled by the vulnerable
 website may be compromised. XSS could be divided into two major types,
-\textit{non-persistent} and \textit{persistent}
-\footnote{\url{https://en.wikipedia.org/wiki/Cross-site_scripting}}, which we
-will describe below.
+\textit{non-persistent} and
+\textit{persistent}\footnote{\url{https://en.wikipedia.org/wiki/Cross-site_scripting}},
+which we will describe below.
 
 Non-persistent XSS vulnerabilities are the most common. They show up when the
 web server does not parse the input in order to escape or reject HTML control
@@ -170,9 +169,8 @@ CSRF can be performed when the victim is trusted by a website and the attacker
 can trick the victim's browser into sending HTTP requests to that website. For
 example, when a Alice visits a web page that contains the HTML image tag
 \textit{<img
-src="\url{http://bank.example.com/withdraw?account=Alice&amount=1000000&for=Mallory}">}
-\footnote{\url{https://en.wikipedia.org/wiki/Cross-site_request_forgery}} that
-Mallory has injected, a request from Alice's browser to the example bank's
+src="\url{http://bank.example.com/withdraw?account=Alice&amount=1000000&for=Mallory}">}\footnote{\url{https://en.wikipedia.org/wiki/Cross-site_request_forgery}}
+that Mallory has injected, a request from Alice's browser to the example bank's
 website will be issued, stating for an amount of 1000000 to be transfered from
 Alice's account to Mallory's. If Alice is logged in the example bank's website,
 the browser will include the cookie containing Alice's authentication
@@ -199,12 +197,12 @@ The users negotiate a symmetric key via assymetric cryptography that is provided
 by X.509 certificates, therefore there exist certificate authorities and a
 public key infrastructure (PKI), in order for the certificates to be verified
 for their owners. However, it can be understood that, due to their key role,
-certificate authorities are points of failure in the system, enabling for
-Man-in-the-Middle attacks, in a case when an adversary has managed to forge
-a root certificate.
+    certificate authorities are points of failure in the system, enabling for
+    Man-in-the-Middle attacks, in a case when an adversary has managed to forge
+    a root certificate.
 
 Apart from certificate-related attacks, a well-known category is compression
-attacks. \footnote{\url{https://tools.ietf.org/html/rfc7457}} Such attacks
+attacks\footnote{\url{https://tools.ietf.org/html/rfc7457}}. Such attacks
 exploit TLS-level compression so as to decrypt ciphertext. In this document, we
 investigate the threat model and performance of such an attack,
 \href{http://breachattack.com}{BREACH}.
@@ -237,9 +235,9 @@ purpose of this paper.
 \begin{figure}[H] \caption{TLS record} \centering
 \includegraphics[width=1\textwidth]{diagrams/tls_record.png}\end{figure}
 
-The above figure
-\footnote{\url{https://en.wikipedia.org/wiki/Transport_Layer_Security}} depicts
-the general format of all TLS records.
+The above
+figure\footnote{\url{https://en.wikipedia.org/wiki/Transport_Layer_Security}}
+depicts the general format of all TLS records.
 
 The first field describes the Record Layer Protocol Type contained in the
 record, which can be one of the following:
@@ -283,7 +281,7 @@ poisoning.
 
 \subsection{ARP Spoofing}
 
-ARP spoofing \footnote{\url{https://en.wikipedia.org/wiki/ARP_spoofing}} is a
+ARP spoofing\footnote{\url{https://en.wikipedia.org/wiki/ARP_spoofing}} is a
 technique where an attacker sends Address Resolution Protocol (ARP) messages
 over the network, so as to assosiate the MAC address with the IP address of
 another host. That way, the attacker may intercept the traffic of the network,

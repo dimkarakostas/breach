@@ -5,7 +5,7 @@ import binascii
 from os import system, path
 import sys
 import signal
-from io_library import kill_signal_handler, get_arguments_dict, setup_logger
+from iolibrary import kill_signal_handler, get_arguments_dict, setup_logger
 import constants
 
 signal.signal(signal.SIGINT, kill_signal_handler)

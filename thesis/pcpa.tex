@@ -3,8 +3,8 @@
 Traditionally, cryptographers have used games for security analysis. Such games
 include the indistinguishability under chosen-plaintext-attack (IND-CPA), the
 indistinguishability under chosen ciphertext attack/adaptive chosen ciphertext
-attack (IND-CCA1, IND-CCA2) etc
-\footnote{\url{https://en.wikipedia.org/wiki/Ciphertext_indistinguishability}}.
+attack (IND-CCA1, IND-CCA2)
+etc\footnote{\url{https://en.wikipedia.org/wiki/Ciphertext_indistinguishability}}.
 In this chapter, we introduce a definition for a new property of encryption
 schemes, called indistinguishability under partially-chosen-plaintext-attack
 (IND-PCPA). We will also show provide comparison between IND-PCPA and other
@@ -51,10 +51,10 @@ Suppose the adversary submits the empty string as the chosen plaintext, a choice
 which is allowed by the definition of the game. The challenger would then send
 back the ciphertext \begin{math}C_i = E(P_k, M_b||"\ ") = E(P_k, M_b)\end{math},
 which is the ciphertext returned from the challenger during the IND-CPA game.
-Therefore, if the adversary has the ability to beat the game of IND-PCPA, i.e. if
-the system is not indistinguishable under partially chosen plaintext attacks, he
-also has the ability to beat the game of IND-CPA. Thus we have shown that
-IND-PCPA is at least as strong as IND-CPA.
+Therefore, if the adversary has the ability to beat the game of IND-PCPA, i.e.
+if the system is not indistinguishable under partially chosen plaintext attacks,
+    he also has the ability to beat the game of IND-CPA. Thus we have shown that
+    IND-PCPA is at least as strong as IND-CPA.
 
 \section{PCPA on compressed encrypted protocols}\label{sec:cepcpa}
 
@@ -120,9 +120,9 @@ two ciphertexts.
 
 \subsection{CRIME}
 
-"Compression Ratio Info-leak Made Easy" (CRIME) \cite{crime} is a security exploit
-that was revealed at the 2012 \href{https://www.ekoparty.org}{ekoparty}. As
-described, "it decrypts HTTPS traffic to steal cookies and hijack sessions".
+"Compression Ratio Info-leak Made Easy" (CRIME) \cite{crime} is a security
+exploit that was revealed at the 2012 \href{https://www.ekoparty.org}{ekoparty}.
+As described, "it decrypts HTTPS traffic to steal cookies and hijack sessions".
 
 In order for the attack to succeed, there are two requirements. Firstly, the
 attacker should be able to sniff the victim's network, so as to see the

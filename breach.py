@@ -4,7 +4,7 @@ import signal
 import datetime
 import logging
 import parse
-from io_library import kill_signal_handler, get_arguments_dict, setup_logger
+from iolibrary import kill_signal_handler, get_arguments_dict, setup_logger
 
 signal.signal(signal.SIGINT, kill_signal_handler)
 

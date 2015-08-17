@@ -1,3 +1,204 @@
-\chapter{Mitigation methods}\label{ch:mitigation}
+\chapter{Mitigation techniques}\label{ch:mitigation}
 
+So far, this paper focused on the foundation and expansion of the attack. In
+this chapter we will investigate several mitigation techniques.
 
+We will examine the methods proposed by Gluck, Harris and Prado in the original
+paper under the new findings that were described in previous chapters.
+
+We will also propose novel mitigation techniques, that either limit the scope of
+the attack or eliminate it completely.
+
+\section{Original mitigation tactics}\label{sec:original_mitigation}
+
+The original BREACH paper \cite{breach} included several tactics for mitigating
+the attack. In the following sections we will investigate them one by one, to
+find if they can still apply, after the proposes of this paper.
+
+\subsection{Length hiding}
+
+The first method proposed is the attempt to hide the length information from the
+attacker. This can be done by adding a random amount of random data to the end
+of the data stream for each response.
+
+As stated in the BREACH paper, this method affects the attack efficiency only
+slightly. Since the standard error of mean is inversely proportional to
+\begin{math}\sqrt{N}\end{math}, where \begin{math}N\end{math} is the number of
+repeated requests the attacker makes for each guess, the attacker can deduce the
+true length with a few hundred or thousand requests.
+
+In this paper we have described how repeated requests can lead to such bypassing
+of the noise, as described in Section \ref{sec:probabilistic}.  Experimental
+results have also shown that for the websites tested it is possible to perform
+the attack under certain circumstances, despite of the noise.
+
+\subsection{Separating Secrets from User Input}\label{subsec:sep_compression}
+
+This approach states that user input and secrets are put in a completely
+different compression context. Although this approach might work when the secret
+is clearly distinct, it does not apply universally.
+
+In this work, we were able to defeat this mitigation measure by introducing
+alternative secrets. As described in Sections \ref{subsec:fb} and
+\ref{subsec:gmail_mail}, user input and secrets are sometimes one and the same.
+In the case of Facebook chat, the attacker can use as a chosen plaintext private
+messages, and in the case of Gmail the attacker can use private mails.
+
+In such cases, the secret and the attacker's chosen plaintext are
+indistinguishable, making this mitigation technique unapplicable.
+
+\subsection{Disabling Compression}
+
+This paper focuses on attacks on encrypted compressed protocols. Since
+encryption is the vulnerability that is exploited, disabling it at the HTTP
+level would result in total defeat of the attack.
+
+However, such a solution would have drastic impact on the performace of web
+applications. An example on Facebook, shows that a regular, empty search result
+page from a minimal account takes up to 12 kilobytes if compressed and 46
+kilobytes as raw plaintext. It is obvious that the tradeoff is too much to
+handle, especially for large websites that handle tens of thousands of user
+requests per second.
+
+\subsection{Masking Secrets}
+
+The attacks investigated are based on the fact that the secret remains the same
+between different requests. This mitigation method introduces a onetime pad
+\begin{math}P\end{math}, that would be XOR-ed with the secret and concatenated
+to the result, as follows \begin{math}P||(P \oplus S)\end{math}.
+
+As we have found, Facebook uses this method in order to mask its CSRF tokens.
+This succesfully stops the attack from being able to launch against this secret.
+
+However, we have showed that many more secrets, other than CSRF tokens, exist
+that would need to be masked, in order to completely mitigate the attack. Since
+masking doubles the length of every secret, while also making the secret not
+compressible, the implementation of this method would result in major loss of
+compressibility and, consequently, performance.
+
+\subsection{Request Rate-Limiting and Monitoring}
+
+The attack, especially against block ciphers, requires a large amount of
+requests towards the chosen endpoint. In order for the attack to finish in a
+reasonable amount of time, these requests would need to be made in a short
+amount of time. In such case, if the endpoint monitors the traffic from and to a
+specific user and limit the requests to a certain amount for a specified time
+window, it would slow down the attack significantly.
+
+However, this method also does not come without cost. Rate limiting provides a
+half-measure against the attack, since it only introduces a delay, without
+defeating it completely. When more optimization techniques are proposed, as the
+ones described in Section \ref{sec:optimization}, this delay would prove to be
+of little help. On the other hand, rate limits introduce the thread of
+\texttt{Denial-of-Service}\footnote{\url{https://en.wikipedia.org/wiki/Denial-of-service_attack}}
+attacks against the victim.
+
+\subsection{More Aggressive CSRF Protection}
+
+The original BREACH paper stated "requiring a valid CSRF token for all requests
+that reflect user input would defeat the attack".
+
+While this is true for CSRF tokens, we have showed that alternative secrets that
+cannot be distinguished from user input could still be stolen.
+
+\section{Novel mitigation techniques}\label{sec:novel_mitigation}
+
+In this section we propose several potentially stronger mitigation techniques,
+that have not been introduced in literature so far.
+
+\subsection{Compressibility annotation}
+
+As described in Section \ref{subsec:sep_compression}, a mitigation technique
+could involve different compression implementations for secrets and user input.
+Although, as we showed, this solution does not apply for all kinds of secrets,
+it could be effective for most commonly and easily attacked ones, such as CSRF
+tokens.
+
+Our proposition is that web servers and web application servers cooperate to
+indicate which portions of data must not be compressed. Application servers
+should be parameterized by the user, in order to annotate each response to the
+web server.
+
+Annotation would then indicate where secrets are located and where a reflection
+could be located. The annotation syntax could include HTML tags that describe
+the functionality of each data portion in the body of the response, a deployment
+descriptor, such as \texttt{web.xml} used in Java applications, or a new special
+format.
+
+The annotated response from the application server would then be interpreted by
+the web server, that would change its compression behavior accordingly.
+Specifically, the server could disable compression of either one or both
+reflections and secrets, that would then be sent always as literals. In case of
+BREACH, disabling the LZ77 stage of compression would also be sufficient, since
+the functionality of this algorithm is the one exploited in such attacks,
+whereas Huffman does more harm than good.
+
+It is understood that in order to apply the described security scheme a lot of
+work needs to be done. The functionality should be implemented separately in
+every web framework, such as
+Django\footnote{\url{https://www.djangoproject.com}}, Ruby on
+Rails\footnote{\url{http://rubyonrails.org}} or
+Laravel\footnote{\url{http://laravel.com}}, as well as web servers, such as
+Apache\footnote{\url{http://httpd.apache.org}} or
+Nginx\footnote{\url{http://nginx.org}}. In each framework a module should be
+created, i.e. \texttt{mod\_breach}, that handles the annotation on either side
+of the connection.
+
+\subsection{SOS headers}
+
+Storage Origin Security (SOS) is a policy proposed by Mike Shema and Vaagn
+Toukharian in their 2013 Black Hat presentation \texttt{Dissecting CSRF Attacks
+\& Defenses} \cite{sos}. It's intended purpose is to counter CSRF attacks,
+however a side-effect would be to mitigate attacks such as BREACH.
+
+SOS applies on cookies and defines whether a browser should include each cookie
+during cross-origin requests or not. This definition could be included in the
+Content-Security-Policy response header of a web application, in a form that
+sets a SOS policy for each cookie.
+
+The policies applied are \texttt{any}, \texttt{self}, \texttt{isolate}.
+\texttt{Any} states that the cookie should be included in the cross-origin
+requests, which is the default browser behaviour as of 2015, after a pre-flight
+request is made to check for an exception to the policy. \texttt{Self} states
+that the cookie should not be included, although again a pre-flight request is
+issued to check for exceptions. \texttt{Isolate} states that the cookie should
+not be included in any case and no pre-flight request should be made.
+
+Pre-flight requests are already used extensively under the Cross-origin resource
+sharing
+(CORS)\footnote{\url{https://en.wikipedia.org/wiki/Cross-origin_resource_sharing}}.
+This mechanism describes new HTTP headers, that allow browsers to request remote
+URLs only if they have permission. The browser sends a request that contains an
+\texttt{Origin} HTTP header, to which the server responds with a list of origin
+sites that are allowed to access the content or an error page in case
+cross-origin is prohibited.
+
+SOS policy introduces an \texttt{Access-Control-SOS} header, that includes a
+list of cookies that the browser needs to confirm before including in the
+request. The server could then respond with an \texttt{Access-Control-SOS-Reply}
+header that instructs the browser to 'allow' or 'deny' all of the cookies
+mentioned in the request header, as well as a timeout period for the browser to
+apply this policy. In absence of such a reply header, the browser could apply
+the default policy of a cookie instead.
+
+BREACH relies on cross-origin requests in order for the attacker to insert a
+chosen plaintext in the body of a response from a chosen endpoint. The
+introduction of SOS headers would effectively stop BREACH and future attacks
+that exploit this aspect of web communications.
+
+If SOS method were to be applied, websites could apply strict policies as to
+which origins could access which data and under which context. As long as
+websites integrate HTTP Strict Transport Security (HSTS)\footnote{\url{https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security}},
+malicious script injection, as described in Section \ref{sec:persistence}, would
+be counter-measured. Combined with SOS headers, a malicious website could be
+disallowed from issuing requests including the victim's cookies, resulting in
+practical mitigation against partially chosen plaintext attacks such as BREACH.
+
+For more information regarding SOS headers we refer to the presentation from
+Blach Hat in slides
+\footnote{\url{https://deadliestwebattacks.files.wordpress.com/2013/08/bhus_2013_shema_toukharian.pdf}}
+and video \footnote{\url{https://www.youtube.com/watch?v=JUY4DQZ02o4}} formats,
+as well as an extended blog post on the issue\footnote{\url{deadliestwebattacks.com/2013/08/08/and-they-have-a-plan/}}. There
+is a discussion thread in the mailing list of W3C Web Application Security
+Working Group\footnote{\url{http://lists.w3.org/Archives/Public/public-webappsec/2013Aug/0037.html}},
+regarding the implementation of SOS headers as a standard in modern browsers.

@@ -36,27 +36,6 @@ By issuing a large amount of requests for different inputs, the attacker can
 analyze the response lengths and extract information about the plaintext
 secrets, as described above.
 
-\subsection{Attack persistence}\label{sec:persistence}
-
-In this section we will propose a \texttt{command-and-control} mechanism that
-makes the attack much more practical. Specifically, we will describe how the
-attack can be implemented even if the victim does not visit a contaminated web
-page, but simply browses the HTTP web.
-
-Since the attacker controls the victim's traffic, it is possible to inject the
-attack script in a response from a regular HTTP website. The script will then
-run on the victim's browser, as if the script was part of the page all along.
-
-The following figure depicts this methodology, which is based on the fact that
-regular HTTP traffic is not encrypted and also does not ensure data integrity.
-
-\begin{figure}[H] \caption{Command-and-control mechanism.} \centering
-\includegraphics[width=0.6\textwidth]{diagrams/breach_mitm.png}\end{figure}
-
-It is clear that, even if the victim breaks the connection, the script can be
-injected in the next HTTP website that is requested, resuming the session from
-where it was stopped.
-
 \subsection{Man-in-the-Middle implementation}
 
 In order to gain control of the victim's traffic towards a chosen endpoint, we
@@ -116,13 +95,13 @@ by the JavaScript to perform the attack, an example of which is shown below:
 
 \plaintext{File with request parameters.}{serial_request.txt}
 
-The script then uses the jQuery library
-\footnote{\url{http://code.jquery.com/jquery-2.1.4.min.js}} to read the info
-from the file and begin the attack. If the file is corrupted or either of the
-attack variables has changed, a delay of 10 seconds is introduced, so that the
-system gets balanced. After that, a request for each item of the attack vector
-is issued serially, continuing from the beginning when the end of the vector is
-reached.
+The script then uses the jQuery
+library\footnote{\url{http://code.jquery.com/jquery-2.1.4.min.js}} to read the
+info from the file and begin the attack. If the file is corrupted or either of
+the attack variables has changed, a delay of 10 seconds is introduced, so that
+the system gets balanced. After that, a request for each item of the attack
+vector is issued serially, continuing from the beginning when the end of the
+vector is reached.
 
 A delay of 10 seconds is also introduced if the above function fails for any
 reason, i.e. if the info file does not exist. That way the attack is persistent
@@ -137,6 +116,27 @@ responses, as described above.
 The BREACH script and the HTML web page can be found in the Appendix Sections
 \ref{sec:evil_js} and \ref{sec:index_html}.
 
+\subsection{Attack persistence}\label{sec:persistence}
+
+In this section we will propose a \texttt{command-and-control} mechanism that
+makes the attack much more practical. Specifically, we will describe how the
+attack can be implemented even if the victim does not visit a contaminated web
+page, but simply browses the HTTP web.
+
+Since the attacker controls the victim's traffic, it is possible to inject the
+attack script in a response from a regular HTTP website. The script will then
+run on the victim's browser, as if the script was part of the page all along.
+
+The following figure depicts this methodology, which is based on the fact that
+regular HTTP traffic is not encrypted and also does not ensure data integrity.
+
+\begin{figure}[H] \caption{Command-and-control mechanism.} \centering
+\includegraphics[width=0.6\textwidth]{diagrams/breach_mitm.png}\end{figure}
+
+It is clear that, even if the victim breaks the connection, the script can be
+injected in the next HTTP website that is requested, resuming the session from
+where it was stopped.
+
 \section{Vulnerable endpoints}\label{sec:vulnerabilities}
 
 In the original BREACH paper \cite{breach}, Gluck, Harris and Prado investigated
@@ -148,10 +148,11 @@ Gmail.
 \subsection{Facebook Chat messages}\label{subsec:fb}
 
 Facebook is the biggest social network as of 2015, with millions of people using
-its chat functionality to communicate. Its mobile version, Facebook Touch
-\footnote{\url{https://touch.facebook.com}} provides a lightweight alternative
-for faster browsing. In this paper we will present a vulnerability that allows
-    an attacker to steal chat messages from Facebook Touch, using BREACH attack.
+its chat functionality to communicate. Its mobile version, Facebook
+Touch\footnote{\url{https://touch.facebook.com}} provides a lightweight
+alternative for faster browsing. In this paper we will present a vulnerability
+that allows an attacker to steal chat messages from Facebook Touch, using BREACH
+attack.
 
 Mobile versions of websites provide a good alternative compared to full versions
 for a list of reasons. Firstly, these endpoints provide limited noise, given
@@ -163,8 +164,8 @@ for a list of reasons. Firstly, these endpoints provide limited noise, given
     and the reflection to be above the window of LZ77 compression is reduced.
 
 Facebook has launched a mechanism to prevent the original BREACH attack against
-CSRF tokens
-\footnote{\url{https://www.facebook.com/notes/protect-the-graph/preventing-a-breach-attack/1455331811373632?_rdr=p}}.
+CSRF
+tokens\footnote{\url{https://www.facebook.com/notes/protect-the-graph/preventing-a-breach-attack/1455331811373632?_rdr=p}}.
 However, as of August 2015, it has not created a mitigation technique against
 the same attack on private messages. Such an attack vector is described in the
 following paragraphs.
@@ -195,7 +196,14 @@ the HTML response body, where it can be clearly seen that this condition is met:
 reflection.} \centering
 \includegraphics[width=1.1\textwidth]{diagrams/fb_response.png}\end{figure}
 
-At this point, one of the basic assumptions of the attack, the fact that a
+If the search string was not reflected in the response, the attack could still
+be feasible, as long as the attacker could send private messages to the victim.
+In that case, the private messages from the attacker would be included in the
+latest messages list, along with the secret conversations from the other friends
+of the victim, resulting in the compression between the two and thus the
+partially chosen plaintex attack.
+
+So, at this point, one of the basic assumptions of the attack, the fact that a
 secret and an attacker input string should both be contained in the response,
 has been confirmed, thus providing a vulnerability that can be exploited in the
 context of the attack.
@@ -203,9 +211,10 @@ context of the attack.
 \subsection{Gmail Authentication token}
 
 Gmail is one of the most used and trusted mail clients as of 2015. It also
-provides a plain HTML version for faster, lightweight interaction
-\footnote{\url{https://m.gmail.com}}. Gmail uses an authentication token, which
-is a random string generated every time the user logs in the account.
+provides a plain HTML version for faster, lightweight
+interaction\footnote{\url{https://m.gmail.com}}. Gmail uses an authentication
+token, which is a random string generated every time the user logs in the
+account.
 
 In contrary to Facebook, Google has not issued any mechanism to mask the
 authentication token for different sessions, but instead uses the same token for
@@ -249,7 +258,7 @@ at the beginning of the attack. Furthermore, the prefix "AF6bup" of the token is
 static, regardless of the session and the account used. This prefix can also be
 used in a similar manner to bootstrap the attack.
 
-\subsection{Gmail private emails}
+\subsection{Gmail private emails}\label{subsec:gmail_mail}
 
 Another opportunity for the attack is provided by the search functionality of
 the full Gmail website. If a user issues a search request in a URL as
@@ -278,7 +287,7 @@ contained in the HTML response body. In this section, we will present a
 methodology to confirm that the chosen plaintext and the secret are compressed
 well, when the plaintext matches the secret, and badly in any other case.
 
-The first tool used is mitmproxy \footnote{\url{https://mitmproxy.org}}.
+The first tool used is mitmproxy\footnote{\url{https://mitmproxy.org}}.
 Mitmproxy is described as "an interactive console program that allows traffic
 flows to be intercepted, inspected, modified and replayed". For the purposes of
 our work, mitmproxy was used to extract the compressed HTML body of two search
@@ -287,7 +296,7 @@ search string contained a selected prefix followed by an incorrect character,
 while the second contained the same prefix followed by the correct character of
     the secret.
 
-The second tool used is infgen \footnote{\url{http://www.zlib.net/infgen.c.gz}}.
+The second tool used is infgen\footnote{\url{http://www.zlib.net/infgen.c.gz}}.
 Infgen is a disassembler that gets a gzip as an input and outputs the huffman
 tables and the LZ77 compression of the initial data stream.
 

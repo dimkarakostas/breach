@@ -30,6 +30,7 @@
 \usepackage{paralist}
 \usepackage{ulem}
 \usepackage{tocvsec2}
+\usepackage{url}
 \usepackage[toc,page]{appendix}
 % FONT SETTINGS ===============================================================
 
@@ -202,41 +203,12 @@
 	tabsize=2,                      % sets default tabsize to 2 spaces
 }
 
-% Define specific rules for each language
-
-\lstdefinelanguage{js}{
-  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
-  keywordstyle=\color{blue}\bfseries,
-  ndkeywords={class, export, boolean, throw, implements, import, this},
-  ndkeywordstyle=\color{darkgray}\bfseries,
-  identifierstyle=\color{black},
-  sensitive=false,
-  comment=[l]{//},
-  morecomment=[s]{/*}{*/},
-  commentstyle=\color{purple}\ttfamily,
-  stringstyle=\color{red}\ttfamily,
-  morestring=[b]',
-  morestring=[b]"
-}
-
 \lstdefinestyle{plain}
 {
 	stepnumber=0
 }
 
 % Create new commands for simpler usage
-
-\newcommand\pcode[2]{
-	\lstinputlisting[language=python, caption={#1},label=lst:#2]{src/#2}
-}
-
-\newcommand\jscode[2]{
-	\lstinputlisting[language=js, caption={#1},label=lst:#2]{src/#2}
-}
-
-\newcommand\bcode[2]{
-	\lstinputlisting[language=bash, caption={#1},label=lst:#2]{src/#2}
-}
 
 \newcommand\plaintext[2]{
 	\lstinputlisting[style=plain, caption={#1},
@@ -251,7 +223,7 @@
 
 % DOCUMENT INFORMATION =========================================================
 
-\title{Probabilistic attacks against compressed encrypted protocols}
+\title{Πιθανοτικές επιθέσεις σε συμπιεσμένα, κρυπτογραφημένα πρωτόκολλα}
 
 % ===============> FIXME
 \author{Δημήτριος Καρακώστας}
@@ -304,7 +276,7 @@
 \include{background}
 \include{pcpa}
 \include{attack_model}
-\include{statistic}
+\include{probabilistic}
 \include{experiment}
 \include{mitigation}
 \include{conclusion}

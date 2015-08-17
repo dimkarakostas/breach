@@ -8,7 +8,7 @@ import time
 import threading
 import constants
 import connect
-from io_library import kill_signal_handler, get_arguments_dict, setup_logger
+from iolibrary import kill_signal_handler, get_arguments_dict, setup_logger
 
 signal.signal(signal.SIGINT, kill_signal_handler)
 

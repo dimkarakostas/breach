@@ -85,8 +85,12 @@ configured properly, the downgrade attempt should be recognised by the
 \texttt{TLS\_FALLBACK\_SCSV} pseudo-cipher and the connection should be dropped.
 In other case, the TLS version could be downgraded to a point where a less safe
 connection is established, such as with version SSL 3.0 or using the RC4 stream
-cipher. For further information on the downgrade vulnerability see the POODLE
-attack \cite{poodle}.
+cipher.
+
+A log from a downgrade attempt against Facebook Touch, that was created by our
+MitM proxy, can be found in Appendix Section \ref{sec:downgrade_log}. For
+further information on the downgrade vulnerability see the POODLE attack
+\cite{poodle}.
 
 The code of the Man-in-the-Middle proxy, as well as the constants library, can
 be found in Appendix Sections \ref{sec:connect_py} and \ref{sec:constants_py}.

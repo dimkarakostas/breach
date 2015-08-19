@@ -1,0 +1,95 @@
+INFO:__main__:Starting Proxy
+INFO:__main__:Setting up user socket
+INFO:__main__:User socket bind complete
+INFO:__main__:User socket listen complete
+INFO:__main__:User socket is set up
+INFO:__main__:Setting up endpoint socket
+INFO:__main__:Connecting endpoint socket
+INFO:__main__:Endpoint socket is set up
+INFO:__main__:Proxy is set up
+INFO:__main__:Starting main proxy loop
+DEBUG:__main__:
+
+Source : User
+Content Type : Handshake (22)
+TLS Version : TLS 1.0
+Payload Length: 180
+Packet Data length: 185
+
+ 0	 16030100b4                      	 .....
+ 0	 010000b0030371b5b4801c7d84a6d75d	 ......q....}...]
+16	 3001557b447d386bad8641488401d895	 0.U{D}8k..AH....
+32	 251d9b094df700002ec02bc02fc00ac0	 %...M.....+./...
+48	 09c013c014c012c007c0110033003200	 ............3.2.
+64	 450039003800880016002f0041003500	 E.9.8...../.A.5.
+80	 84000a00050004010000590000001700	 ..........Y.....
+96	 15000012746f7563682e66616365626f	 ....touch.facebo
+112	 6f6b2e636f6dff01000100000a000800	 ok.com..........
+128	 06001700180019000b00020100002300	 ..............#.
+144	 0033740000000500050100000000000d	 .3t.............
+160	 00120010040105010201040305030203	 ................
+176	 04020202                        	 ....
+
+
+DEBUG:__main__:Downgrade Attempt
+
+DEBUG:__main__:
+
+Source : Endpoint
+Content Type : Alert (21)
+TLS Version : TLS 1.0
+Payload Length: 2
+Packet Data length: 7
+
+ 0	 1503010002                      	 .....
+ 0	 0228                            	 .(
+
+
+INFO:__main__:User connection closed
+INFO:__main__:Restarting Proxy
+INFO:__main__:Setting up user socket
+INFO:__main__:User socket bind complete
+INFO:__main__:User socket listen complete
+INFO:__main__:User socket is set up
+INFO:__main__:Setting up endpoint socket
+INFO:__main__:Connecting endpoint socket
+INFO:__main__:Endpoint socket is set up
+INFO:__main__:Proxy has restarted
+DEBUG:__main__:
+
+Source : User
+Content Type : Handshake (22)
+TLS Version : TLS 1.0
+Payload Length: 156
+Packet Data length: 161
+
+ 0	 160301009c                      	 .....
+ 0	 0100009803014fedeb33f1b91a9b9186	 ......O..3......
+16	 a8148766eb3f14ec43a2f7194bbc7666	 ...f.?..C...K.vf
+32	 b8ba6aeb085c00002c5600c00ac009c0	 ..j..\..,V......
+48	 13c014c012c007c01100330032004500	 ..........3.2.E.
+64	 39003800880016002f00410035008400	 9.8...../.A.5...
+80	 0a000500040100004300000017001500	 ........C.......
+96	 0012746f7563682e66616365626f6f6b	 ..touch.facebook
+112	 2e636f6dff01000100000a0008000600	 .com............
+128	 1700180019000b000201000023000033	 ............#..3
+144	 740000000500050100000000        	 t...........
+
+
+DEBUG:__main__:
+
+Source : Endpoint
+Content Type : Alert (21)
+TLS Version : TLS 1.0
+Payload Length: 2
+Packet Data length: 7
+
+ 0	 1503010002                      	 .....
+ 0	 0256                            	 .V
+
+
+INFO:__main__:Endpoint connection closed
+INFO:__main__:Restarting Proxy
+INFO:__main__:Setting up user socket
+INFO:__main__:User socket bind complete
+INFO:__main__:User socket listen complete

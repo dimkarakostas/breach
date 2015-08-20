@@ -1,2 +1,54 @@
 \chapter{Introduction}\label{ch:intro}
 
+\section{Thesis structure}\label{sec:structure}
+
+This thesis is structured as follows:
+
+\begin{description} \item{Chapter \ref{background}} \hfill \\
+
+This Chapter provides the reader with basic information, both technical and
+theoretical, that will be referenced later in this paper. It consists of a brief
+description of the most common compression algorithms, as well as basic
+standards and protocols used for communications security over the Internet,
+along with exploits against them. \hfill \\
+
+\item{Chapter \ref{ch:pcpa}} \hfill \\
+
+We introduce a new property of cryptosystems, providing both formal and
+intuitive definitions for it. We compare it to known encryption properties and
+present attack scenarios on the proposed scheme. Finally, we describe known
+exploits that follow the described attack vector. \hfill \\
+
+\item{Chapter \ref{ch:attack}} \hfill \\
+
+We describe in depth the attack model that is investigated in this work. We
+elaborate on our implementation for this model, present vulnerabilities on major
+websites that were found during this work, as well as a methodology for
+confirming whether the attack is possible on a chosen endpoint. \hfill \\
+
+\item{Chapter \ref{ch:statistic}} \hfill \\
+
+This chapter includes statistical methods that were used during our
+investigation. It proposes probabilistic techniques to bypass impediments, along
+with various optimization processes. \hfill \\
+
+\item{Chapter \ref{ch:experiment}} \hfill \\
+
+We present the results of multiple experiments on widely used endpoints. We
+include charts, along with definition of success, for each case. \hfill \\
+
+\item{Chapter \ref{ch:mitigation}} \hfill \\
+
+We present various mitigation methods of the described attack model. We
+investigate the efficiency of proposed methods, under the scope of new findings
+in this work, and present various novel mitigation techniques, that potentially
+eliminate the attack.\hfill \\
+
+\item{Chapter \ref{conclusion}} \hfill \\
+
+We provide concluding remarks and propose future work, that could be done to
+improve the attack model and minimize its consequences. \hfill \\
+
+\item{Chapter \ref{ch:appendix}} \hfill \\
+
+This chapter includes our code implementation of the attack.  \end{description}

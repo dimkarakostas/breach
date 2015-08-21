@@ -1,2 +1,65 @@
 \chapter{Conclusion}\label{conclusion}
 
+\section{Concluding remarks}
+
+Attacks on encrypted protocols, that exploit compression methods applied on the
+plaintext handled by those protocols, such as BREACH, have only recently been
+described.  Literature works so far show limited theoretical definitions of this
+new type of attacks, while experimental results touch a relatively small scope
+of protocols used nowadays.
+
+This work focused on assessing the threat of such attacks for widely used
+protocols, expanding the theoretical definition, as well as investigated the
+success of methods designed for mitigation.
+
+We introduced a cryptographical game for determining the property of
+indistinguishability under partially chosen plaintext attacks. Also, we provided
+intuitive proofs for comparison to other indistinguishability properties, along
+with scenarios of application of partially chosen plaintext attacks on
+compressed encrypted protocols.
+
+The need for practical description of our method resulted in the definition of
+an attack model, based on BREACH, that initiates, automates and validates the
+attack. We also revealed major vulnerabilities on the two systems that we
+experimented on, Facebook and Gmail, introducing new forms of secrets and chosen
+plaintext an attacker could use.
+
+In advance, we expanded the scope of the attack to block ciphers, we ulitized
+various statistical methods, that bypass known obstacles, such as noise and
+padding.  Furthermore, we proposed various optimization techniques that could
+reduce the time and increase the efficiency of the attack, posing a valid threat
+for real-world systems.
+
+In order to perform experiments and validate the efficiency of the attack, we
+implemented a framework in Python, that initiates the attack on a chosen
+endpoint and parses the output in order to produce statistical results. From an
+attacker's perspective, the framework must run on a machine inside the victim's
+network, while the victim's machine is configured to send all traffic to the
+endpoint to the attacker's machine and the victim also  browses a website
+controlled by the attacker.
+
+Experimental results have shown that, although the framework does not provide a
+robust, bulletproof functionality, the attacker has a considerable advantage on
+stealing a secret from the endpoints tested.
+
+Finally, we investigated the ability of previously proposed mitigation
+techniques to stop the attack under the findings, as well as proposed novel
+methods that could effectively minimize the attack's success or even mitigate it
+completely.
+
+\section{Future Work}
+
+Although this paper introduced the IND-PCPA property, formal definitions and
+mathematical proofs should also be used to properly describe it. Also, this new
+property should be formally evaluated, compared to other known properties.
+
+As far as the practical attack is concerned, a consistency mechanism, as
+described in Section \ref{sec:persistence}, is needed, in order to take full
+advantage of vulnerabilities of simple HTTP connections. Furthermore, the
+integration of MitM attacks, as the ones referenced in Section \ref{sec:mitm},
+would result in a potential threat outside lab environment.
+
+Finally, especially in light of the new findings, implementation of the two
+novel mitigation techniques, compressibility annotation
+[\ref{subsec:annotation}] and SOS headers [\ref{subsec:sos}], is vital in order
+for the systems to remain as secure as possible.

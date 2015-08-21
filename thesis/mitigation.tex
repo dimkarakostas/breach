@@ -104,7 +104,7 @@ that cannot be distinguished from user input, could still be compromised.
 In this section we propose several potentially stronger mitigation techniques,
 that have not been introduced in literature so far.
 
-\subsection{Compressibility annotation}
+\subsection{Compressibility annotation}\label{subsec:annotation}
 
 As described in Section \ref{subsec:sep_compression}, a mitigation technique
 could involve different compression implementations for secrets and user input.
@@ -140,7 +140,7 @@ Nginx\footnote{\url{http://nginx.org}}. In each framework a module should be
 created, i.e. \texttt{mod\_breach}, that handles the annotation on either side
 of the communication.
 
-\subsection{SOS headers}
+\subsection{SOS headers}\label{subsec:sos}
 
 Storage Origin Security (SOS) is a policy proposed by Mike Shema and Vaagn
 Toukharian in their 2013 Black Hat presentation \texttt{Dissecting CSRF Attacks

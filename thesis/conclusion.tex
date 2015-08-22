@@ -57,9 +57,12 @@ As far as the practical attack is concerned, a consistency mechanism, as
 described in Section \ref{sec:persistence}, is needed, in order to take full
 advantage of vulnerabilities of simple HTTP connections. Furthermore, the
 integration of MitM attacks, as the ones referenced in Section \ref{sec:mitm},
-would result in a potential threat outside lab environment.
+would result in a potential threat outside lab environment. It is also important
+to implement a MitM proxy on TCP level, that would be able to distinguish
+packets of different records, minimizing the margin of error for overlapping
+response or request streams.
 
-Finally, especially in light of the new findings, implementation of the two
-novel mitigation techniques, compressibility annotation
-[\ref{subsec:annotation}] and SOS headers [\ref{subsec:sos}], is vital in order
-for the systems to remain as secure as possible.
+Finally, implementation of the two mitigation techniques, like proposed
+compressibility annotation [\ref{subsec:annotation}] and SOS headers
+[\ref{subsec:sos}], is vital in order to secure systems against attackst that
+utilize the findings of this paper.

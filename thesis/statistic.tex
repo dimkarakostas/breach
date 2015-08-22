@@ -218,7 +218,7 @@ MitM proxy. The attack can be then issued on both domains, effectively
 parallelizing it with up to Nx efficiency, where N is the number of different
 domains and subdomains.
 
-\subsection{Point-system meta-predictor}
+\subsection{Point-system meta-predictor}\label{subsec:point_system}
 
 Each variation of the attack so far assumed that, after some number of requests,
 the mean length of the correct guess would be smaller than the length of each
@@ -226,36 +226,8 @@ incorrect. However, in experiments conducted for the purpose of this paper have
 shown that this is not always the case.
 
 In this section we introduce the concept of a meta-predictor, that employs a
-point system, in order to rank each guess compared to the others. We will
-describe the system using as an example our experiment.
-
-We assume an attack on Facebook chat messages, following the serial method of
-requests, knowing the secret consists of letters, either lowercase or uppercase.
-
-In order to steal the first letter of the secret, we perform 4000 iterations of
-requests, which translates to 4000 for each letter in the alphabet or, in other
-words, \begin{math}4000*52=208000\end{math} requests in total. Also, we sampled
-the output, in order to display the performance of the attack in a chart.
-
-The following figure shows the behaviour of the correct letter as the attack
-evolved:
-
-\begin{figure}[H] \caption{Correct letter length chart.}
-\includegraphics[width=1\textwidth]{diagrams/point_system_chart_1.png}\end{figure}
-
-The top horizontal axis contains the number of iterations of requests.
-
-The left vertical axis shows the position of the correct letter compared to the
-others in ascending mean length order, i.e. the letter with minimum mean length
-is \texttt{1}, the second smaller is \texttt{2} etc, and corresponds to the blue
-curve.
-
-The right vertical axis depicts the difference of the mean lengths of the
-correct letter and the \textit{best} one, i.e. the one with minimum mean length,
-or the second \textit{best}, in case the correct letter is the one of minimum
-mean length.  This corresponds to the orange curve.
-
-It can be noticed that, although the correct letter, after an initial period
+point system, in order to rank each guess compared to the others. The need for
+such functionality became prominent, when it can be noticed that, although the correct letter, after an initial period
 until the attack is stabilized, is among the \textit{best} ones, it is not
 necessarily \textit{the best}, no matter how many requests are made.
 
@@ -269,20 +241,11 @@ length order. This point system is declared in the constants library
 \textbf{6}: 6 \\ \textbf{7}: 4 & \textbf{8}: 3 \\ \textbf{9}: 2 & \textbf{10}: 1
 \\ \hline \end{tabular} \end{table}
 
-In a similar manner, the chart depicting the evolution of the correct letter's
-behaviour in time, regarding the aggregated points, is shown in the following
-figure:
-
-\begin{figure}[H] \caption{Correct letter point chart.}
-\includegraphics[width=1\textwidth]{diagrams/point_system_chart_2.png}\end{figure}
-
-It is clear that, by introducing the point system, the prediction of the correct
-letter is much more efficient than before. After a transient period, the correct
-letter demonstrates a better behaviour compared to any other choice, increasing
-its point performance in an almost linear rate over time.
-
 Conceptually, it can be understood that the correct letter is more probable to
 be among the \textit{best} ones over time, even if it is not \textit{the best}
 eventually, compared to the others that, although they may demonstrate a spike
 in performance for a certain period, they will not be as \textit{good} in
 general.
+
+An example of this functionality against Facebook Chat is described extensively
+in Section \ref{sec:fb_experiment}.

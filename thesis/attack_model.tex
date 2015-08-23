@@ -192,12 +192,6 @@ below:
 \begin{figure}[H] \caption{Facebook Chat drop-down list.} \centering
 \includegraphics[width=0.6\textwidth]{diagrams/fb_message.png}\end{figure}
 
-For the purpose of this paper we have created a lab account, that has no friends
-and no user activity of any kind, except for a self-sent private message, that
-will be the secret to be stolen. That way, the noise of a real-world account,
-such as new messages or notifications, is contained and we can avoid the
-problems described above.
-
 The next step is to validate that the search string is reflected in the
 response, which should also contain the private secret. Below is a fragment of
 the HTML response body, where it can be clearly seen that this condition is met:
@@ -218,7 +212,7 @@ secret and an attacker input string should both be contained in the response,
 has been confirmed, providing us with a vulnerability that can be exploited in
 the context of the attack.
 
-\subsection{Gmail Authentication token}
+\subsection{Gmail Authentication token}\label{subsec:gmail_token}
 
 Gmail is one of the most used and trusted mail clients as of 2015. It also
 provides a plain HTML version for faster, lightweight

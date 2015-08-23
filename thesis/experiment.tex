@@ -77,4 +77,57 @@ would need to be applied for a noticeable period of time.
 
 \section{Gmail Authentication token}\label{sec:gmail_experiment}
 
+Our next experiment aimed at stealing the authentication token of a Gmail
+account, as described in Section \ref{subsec:gmail_token}. Since noise during
+this attack is at minimum level, a regular account was used.
 
+In this case, we employ the hill-climbing parallelization technique, against a
+full alphabet, consisting of digits, lowercase and uppercase letters and dashes,
+a total of 64 items. In each stage of the attack the alphabet is divided in two
+sets, so the one that presents the best behaviour is chosen to continue the
+attack in the next stage, resulting in a total of \begin{math}log(64) =
+6\end{math} stages.
+
+In order to validate the results of the measurements, we repeat each stage of
+the attack as many times as needed, until one of the two sets shows minimum mean
+length for an aggregate of 4 attempts, so a maximum of 7 attempts should be made
+for each stage. That way, we can reduce the margin of
+error resulting in random circumstances that may appear during an attempt.
+
+Evaluation of the response stream was based again on the point-system. In this
+case, since there are only two choices in each iteration, the points depict the
+amount of iterations that each choice showed minimum mean length. Each attempt
+on each stage ended when either half of the alphabet gathered
+\begin{math}2000\end{math} points, therefore a total of
+\begin{math}4000\end{math} requests was issued in each case, with a time
+interval of 4 seconds between consecutive requests. Therefore, the
+total amount of time theoretically needed for the completion of the attack to
+steal one character of the token is \begin{math}4000*4*7*6 = 672000\end{math}
+seconds, which is roughly 7 days.
+
+The result of this experiment could be summarized in the following chart:
+
+\begin{figure}[H] \caption{Successful attempts for each alphabet during parallelization.}
+\includegraphics[width=1\textwidth]{diagrams/gmail_parallel.png}\end{figure}
+
+Each stage of the parallel attack resulted in a correct choice of alphabet,
+ultimately leading to a successful guess on the first character of the token.
+However, the correct alphabet was not successful in each attempt for all stages
+of the attack, only some. In other stages, the incorrect alphabet performed
+better in up to 3 attempts, as in stage, showing a very small advantage
+of the correct alphabet. However, even in that worst case scenario, the
+correct alphabet presented almost 60\% chance to be chosen.
+
+In light of these findings, we can safely assume that Gmail is also not
+IND-PCPA. An adversary that uses the proposed attack mechanism has a notable
+advantage in guessing correctly each character of the authentication token.
+
+Hill-climbing parallelization resulted in a notable reduction of requests
+needed, compared to the serial method, and, consequently, a reduction of the
+total time of execution. Also, since Gmail authentication tokens are renewed
+every time the user logs in the account, the secret is less likely to be
+modified compared to Facebook Chat messages.
+
+However, even after these advantages, the attack could not be described as a
+real-world threat, since \begin{math}7*20 = 140\end{math} days, where 20 is the length of
+the token, is a very long period of time for the attack assumptions to be met.

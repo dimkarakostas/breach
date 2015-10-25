@@ -1,5 +1,5 @@
 from __future__ import division
-from os import system, path, getpid
+from os import system, path
 import sys
 import signal
 import datetime
@@ -11,6 +11,7 @@ import connect
 from iolibrary import kill_signal_handler, get_arguments_dict, setup_logger
 
 signal.signal(signal.SIGINT, kill_signal_handler)
+
 
 class Parser():
     '''
@@ -82,19 +83,19 @@ class Parser():
                 combined[k] = output_dict[k] / iter_dict[k]
         return combined
 
-    def sort_dictionary_values(self, dictionary, desc = False):
+    def sort_dictionary_values(self, dictionary, desc=False):
         '''
         Sort a dictionary by values.
         '''
-        sorted_dict = [ (v,k) for k, v in dictionary.items() ]
+        sorted_dict = [(v, k) for k, v in dictionary.items()]
         sorted_dict.sort(reverse=desc)
         return sorted_dict
 
-    def sort_dictionary(self, dictionary, desc = False):
+    def sort_dictionary(self, dictionary, desc=False):
         '''
         Sort a dictionary by keys.
         '''
-        sorted_dict = [ (v,k) for v, k in dictionary.items() ]
+        sorted_dict = [(v, k) for v, k in dictionary.items()]
         sorted_dict.sort(reverse=desc)
         return sorted_dict
 
@@ -133,7 +134,7 @@ class Parser():
                 response_length = 0
                 in_bracket = True
                 after_start = False
-                illegal_semaphore = 6 # Discard the first three iterations so that the system is stabilized the system is stabilized
+                illegal_semaphore = 6  # Discard the first three iterations so that the system is stabilized the system is stabilized
                 illegal_iteration = False
                 for line in output_file.readlines():
                     if len(buff) == len(self.alphabet):
@@ -314,7 +315,7 @@ class Parser():
         '''
         correct_alphabet = None
         for symbol in enumerate(combined_sorted):
-            if symbol[0] == 0: # TODO: Better calculation of correct alphabet
+            if symbol[0] == 0:  # TODO: Better calculation of correct alphabet
                 correct_alphabet = symbol[1][1].split(self.prefix)
                 correct_alphabet.pop(0)
                 for i in enumerate(correct_alphabet):
@@ -337,7 +338,7 @@ class Parser():
                 correct_item = points[0][1].split()[0].split(self.prefix)[1]
                 self.args_dict['prefix'] = self.prefix + correct_item
                 self.args_dict['divide_and_conquer'] = 0
-                self.args_dict['alphabet']= self.get_alphabet({'alpha_types': self.alpha_types, 'prefix': self.prefix, 'method': self.method})
+                self.args_dict['alphabet'] = self.get_alphabet({'alpha_types': self.alpha_types, 'prefix': self.prefix, 'method': self.method})
                 self.attack_logger.debug('SUCCESS: %s' % correct_item)
                 self.attack_logger.debug('Total time till now: %s' % str(datetime.datetime.now() - self.start_time))
                 self.attack_logger.debug('----------Continuing----------')
@@ -466,6 +467,7 @@ class Parser():
                 self.connector.join()
                 self.args_dict['latest_file'] = self.latest_file + 1
         return self.args_dict
+
 
 class ConnectorThread(threading.Thread):
     '''

@@ -2,13 +2,13 @@ import socket
 import select
 import logging
 import binascii
-from os import system, path
 import sys
 import signal
 from iolibrary import kill_signal_handler, get_arguments_dict, setup_logger
 import constants
 
 signal.signal(signal.SIGINT, kill_signal_handler)
+
 
 class Connector():
     '''
@@ -54,15 +54,15 @@ class Connector():
         '''
         pad = 0
         output = []
-        buff = '' # Buffer of 16 chars
+        buff = ''  # Buffer of 16 chars
 
         for i in xrange(0, len(data), constants.LOG_BUFFER):
                 buff = data[i:i+constants.LOG_BUFFER]
-                hex = binascii.hexlify(buff) # Hex representation of data
+                hex = binascii.hexlify(buff)  # Hex representation of data
                 pad = 32 - len(hex)
-                txt = '' # ASCII representation of data
+                txt = ''  # ASCII representation of data
                 for ch in buff:
-                    if ord(ch)>126 or ord(ch)<33:
+                    if ord(ch) > 126 or ord(ch) < 33:
                             txt = txt + '.'
                     else:
                             txt = txt + chr(ord(ch))
@@ -70,7 +70,7 @@ class Connector():
 
         return '\n'.join(output)
 
-    def parse(self, data, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, is_response = False):
+    def parse(self, data, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, is_response=False):
         '''
         Parse data and print header information and payload.
         '''
@@ -101,17 +101,17 @@ class Connector():
                 data = chunked_user_header + data
                 chunked_user_header = None
             if past_bytes_user:
-               lg.append('Data from previous TLS record: User\n')
-               if past_bytes_user >= len(data):
-                   lg.append(self.log_data(data))
-                   lg.append('\n')
-                   past_bytes_user = past_bytes_user - len(data)
-                   return ('\n'.join(lg), past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade)
-               else:
-                   lg.append(self.log_data(data[0:past_bytes_user]))
-                   lg.append('\n')
-                   data = data[past_bytes_user:]
-                   past_bytes_user = 0
+                lg.append('Data from previous TLS record: User\n')
+                if past_bytes_user >= len(data):
+                    lg.append(self.log_data(data))
+                    lg.append('\n')
+                    past_bytes_user = past_bytes_user - len(data)
+                    return ('\n'.join(lg), past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade)
+                else:
+                    lg.append(self.log_data(data[0:past_bytes_user]))
+                    lg.append('\n')
+                    data = data[past_bytes_user:]
+                    past_bytes_user = 0
 
         try:
             cont_type = ord(data[constants.TLS_CONTENT_TYPE])
@@ -174,14 +174,12 @@ class Connector():
 
         # Check if packet has more than one TLS records
         if length < len(data) - constants.TLS_HEADER_LENGTH:
-                more_records, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, _ = self.parse(
-                                                                                                                                data[constants.TLS_HEADER_LENGTH+length:],
-                                                                                                                                past_bytes_endpoint,
-                                                                                                                                past_bytes_user,
-                                                                                                                                chunked_endpoint_header,
-                                                                                                                                chunked_user_header,
-                                                                                                                                is_response
-                                                                                                                                )
+                more_records, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, _ = self.parse(data[constants.TLS_HEADER_LENGTH+length:],
+                                                                                                                                 past_bytes_endpoint,
+                                                                                                                                 past_bytes_user,
+                                                                                                                                 chunked_endpoint_header,
+                                                                                                                                 chunked_user_header,
+                                                                                                                                 is_response)
                 lg.append(more_records)
 
         return ('\n'.join(lg), past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade)
@@ -201,7 +199,7 @@ class Connector():
         self.full_logger.info('Proxy is set up')
         return
 
-    def restart(self, attempt_counter = 0):
+    def restart(self, attempt_counter=0):
         '''
         Restart sockets in case of error.
         '''
@@ -228,7 +226,7 @@ class Connector():
         self.full_logger.info('Proxy has restarted')
         return
 
-    def stop(self, exit_code = 0):
+    def stop(self, exit_code=0):
         '''
         Shutdown sockets and terminate connection.
         '''
@@ -248,7 +246,7 @@ class Connector():
         try:
             self.full_logger.info('Setting up user socket')
             user_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            user_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Set options to reuse socket
+            user_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Set options to reuse socket
             user_socket.bind((constants.USER, constants.USER_PORT))
             self.full_logger.info('User socket bind complete')
             user_socket.listen(1)
@@ -270,7 +268,7 @@ class Connector():
             endpoint_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.full_logger.info('Connecting endpoint socket')
             endpoint_socket.connect((constants.ENDPOINT, constants.ENDPOINT_PORT))
-            endpoint_socket.setblocking(0) # Set non-blocking, i.e. raise exception if send/recv is not completed
+            endpoint_socket.setblocking(0)  # Set non-blocking, i.e. raise exception if send/recv is not completed
             self.endpoint_socket = endpoint_socket
             self.full_logger.info('Endpoint socket is set up')
         except:
@@ -283,27 +281,25 @@ class Connector():
         Start proxy and execute main loop
         '''
         # Initialize parameters for execution.
-        past_bytes_user = 0 # Number of bytes expanding to future user packets
-        past_bytes_endpoint = 0 # Number of bytes expanding to future endpoint packets
-        chunked_user_header = None # TLS user header portion that gets stuck between packets
-        chunked_endpoint_header = None # TLS endpoint header portion that gets stuck between packets
+        past_bytes_user = 0  # Number of bytes expanding to future user packets
+        past_bytes_endpoint = 0  # Number of bytes expanding to future endpoint packets
+        chunked_user_header = None  # TLS user header portion that gets stuck between packets
+        chunked_endpoint_header = None  # TLS endpoint header portion that gets stuck between packets
 
         self.start()
         self.full_logger.info('Starting main proxy loop')
         try:
             while 1:
-                ready_to_read, ready_to_write, in_error = select.select(
-                                                                        [self.user_connection, self.endpoint_socket],
+                ready_to_read, ready_to_write, in_error = select.select([self.user_connection, self.endpoint_socket],
                                                                         [],
                                                                         [],
-                                                                        5
-                                                                       )
+                                                                        5)
 
-                if self.user_connection in ready_to_read: # If user side socket is ready to read...
+                if self.user_connection in ready_to_read:  # If user side socket is ready to read...
                         data = ''
 
                         try:
-                            data = self.user_connection.recv(constants.SOCKET_BUFFER) # ...receive data from user...
+                            data = self.user_connection.recv(constants.SOCKET_BUFFER)  # ...receive data from user...
                         except Exception as exc:
                             self.full_logger.debug('User connection error')
                             self.full_logger.debug(exc)
@@ -315,34 +311,30 @@ class Connector():
                                 self.stop(-5)
                         else:
                                 self.basic_logger.debug('User Packet Length: %d' % len(data))
-                                output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade = self.parse(
-                                                                                                                                                   data,
+                                output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, downgrade = self.parse(data,
                                                                                                                                                    past_bytes_endpoint,
                                                                                                                                                    past_bytes_user,
                                                                                                                                                    chunked_endpoint_header,
-                                                                                                                                                   chunked_user_header
-                                                                                                                                                  ) # ...parse it...
+                                                                                                                                                   chunked_user_header)  # ...parse it...
                                 self.full_logger.debug(output)
                                 try:
                                     if downgrade and constants.ATTEMPT_DOWNGRADE:
                                             alert = 'HANDSHAKE_FAILURE'
-                                            output, _, _, _, _, _ = self.parse(
-                                                                               constants.ALERT_MESSAGES[alert],
+                                            output, _, _, _, _, _ = self.parse(constants.ALERT_MESSAGES[alert],
                                                                                past_bytes_endpoint,
                                                                                past_bytes_user,
-                                                                               True
-                                                                              )
+                                                                               True)
                                             self.full_logger.debug('\n\n' + 'Downgrade Attempt' + output)
-                                            self.user_connection.sendall(constants.ALERT_MESSAGES[alert]) # if we are trying to downgrade, send fatal alert to user
+                                            self.user_connection.sendall(constants.ALERT_MESSAGES[alert])  # if we are trying to downgrade, send fatal alert to user
                                             continue
-                                    self.endpoint_socket.sendall(data) # ...and send it to endpoint
+                                    self.endpoint_socket.sendall(data)  # ...and send it to endpoint
                                 except Exception as exc:
                                     self.full_logger.debug('User data forwarding error')
                                     self.full_logger.debug(exc)
                                     self.stop(-4)
                                     break
 
-                if self.endpoint_socket in ready_to_read: # Same for the endpoint side
+                if self.endpoint_socket in ready_to_read:  # Same for the endpoint side
                         data = ''
 
                         try:
@@ -359,14 +351,12 @@ class Connector():
                                 break
                         else:
                                 self.basic_logger.debug('Endpoint Packet Length: %d' % len(data))
-                                output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, _ = self.parse(
-                                                                                                                                           data,
+                                output, past_bytes_endpoint, past_bytes_user, chunked_endpoint_header, chunked_user_header, _ = self.parse(data,
                                                                                                                                            past_bytes_endpoint,
                                                                                                                                            past_bytes_user,
                                                                                                                                            chunked_endpoint_header,
                                                                                                                                            chunked_user_header,
-                                                                                                                                           True
-                                                                                                                                          )
+                                                                                                                                           True)
                                 self.full_logger.debug(output)
                                 try:
                                     self.user_connection.sendall(data)
@@ -375,7 +365,7 @@ class Connector():
                                     self.full_logger.debug(exc)
                                     self.stop(-2)
                                     break
-        except Exception as e:
+        except:
             self.stop(-1)
         return
 

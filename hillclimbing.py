@@ -2,6 +2,7 @@ import sys
 from iolibrary import get_arguments_dict
 from constants import DIGIT, LOWERCASE, UPPERCASE, DASH, NONCE_1, NONCE_2
 
+
 def create_alphabet(alpha_types):
     '''
     Create array with the alphabet we are testing.
@@ -24,6 +25,7 @@ def create_alphabet(alpha_types):
     assert alphabet, 'Invalid alphabet types'
     return alphabet
 
+
 def huffman_point(alphabet, test_points):
     '''
     Use Huffman fixed point.
@@ -34,23 +36,23 @@ def huffman_point(alphabet, test_points):
                 huffman = huffman + alpha_item[1] + '_'
     return huffman
 
+
 def serial_execution(alphabet, prefix):
     '''
     Create request list for serial method.
     '''
-    global reflection_alphabet
     req_list = []
     for i in xrange(len(alphabet)):
         huffman = huffman_point(alphabet, [alphabet[i]])
         req_list.append(huffman + prefix + alphabet[i])
     reflection_alphabet = alphabet
-    return req_list
+    return req_list, reflection_alphabet
+
 
 def parallel_execution(alphabet, prefix):
     '''
     Create request list for parallel method.
     '''
-    global reflection_alphabet
     if len(alphabet) % 2:
         alphabet.append('^')
     first_half = alphabet[::2]
@@ -63,7 +65,8 @@ def parallel_execution(alphabet, prefix):
         head = head + prefix + first_half[i] + ' '
         tail = tail + prefix + second_half[i] + ' '
     reflection_alphabet = [head, tail]
-    return [first_huffman + head, second_huffman + tail]
+    return [first_huffman + head, second_huffman + tail], reflection_alphabet
+
 
 def create_request_file(args_dict):
     '''
@@ -80,14 +83,14 @@ def create_request_file(args_dict):
     with open('request.txt', 'w') as f:
         f.write(prefix + '\n')
         total_tests = []
-        alphabet = method_functions[method](search_alphabet, prefix)
+        alphabet, reflection_alphabet = method_functions[method](search_alphabet, prefix)
         for test in alphabet:
-            huffman_nonce = huffman_point(alphabet, test)
             search_string = NONCE_1 + test + NONCE_2
             total_tests.append(search_string)
         f.write(','.join(total_tests))
         f.close()
     return reflection_alphabet
+
 
 if __name__ == '__main__':
     args_dict = get_arguments_dict(sys.argv)

@@ -1,4 +1,3 @@
-from os import system
 import sys
 import signal
 import datetime
@@ -7,6 +6,7 @@ import parse
 from iolibrary import kill_signal_handler, get_arguments_dict, setup_logger
 
 signal.signal(signal.SIGINT, kill_signal_handler)
+
 
 class Breach():
     '''

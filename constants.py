@@ -1,4 +1,32 @@
+'''
+File: constants.py
+Author: Dimitris Karakostas
+Description: Constants library.
+'''
+
 import binascii
+
+# Protocol tag numbers
+IP_TAG = 8
+TCP_TAG = 6
+ICMP_TAG = 1
+UDP_TAG = 17
+
+# Ethernet Header
+ETHERNET_HEADER_LENGTH = 14
+ETHERNET_HEADER_UNPACK = '!6s6sH'
+
+# IP Header
+IP_HEADER_UNPACK = '!BBHHHBBH4s4s'
+
+# TCP Header
+TCP_HEADER_UNPACK = '!HHLLBBHHH'
+
+# ICMP Header
+ICMP_HEADER_UNPACK = '!BBH'
+
+# UDP Header
+UDP_HEADER_UNPACK = '!HHHH'
 
 # TLS Header
 TLS_HEADER_LENGTH = 5
@@ -14,34 +42,33 @@ TLS_ALERT = 21
 TLS_HANDSHAKE = 22
 TLS_APPLICATION_DATA = 23
 TLS_HEARTBEAT = 24
-TLS_CONTENT = {TLS_CHANGE_CIPHER_SPEC: "Change cipher spec (20)",
-               TLS_ALERT: "Alert (21)",
-               TLS_HANDSHAKE: "Handshake (22)",
-               TLS_APPLICATION_DATA: "Application Data (23)",
-               TLS_HEARTBEAT: "Heartbeat (24)"}
-TLS_VERSION = {(3, 0): "SSL 3.0",
-               (3, 1): "TLS 1.0",
-               (3, 2): "TLS 1.1",
-               (3, 3): "TLS 1.2"}
+TLS_CONTENT = {TLS_CHANGE_CIPHER_SPEC: 'Change cipher spec (20)',
+               TLS_ALERT: 'Alert (21)',
+               TLS_HANDSHAKE: 'Handshake (22)',
+               TLS_APPLICATION_DATA: 'Application Data (23)',
+               TLS_HEARTBEAT: 'Heartbeat (24)'}
+TLS_VERSION = {(3, 0): 'SSL 3.0',
+               (3, 1): 'TLS 1.0',
+               (3, 2): 'TLS 1.1',
+               (3, 3): 'TLS 1.2'}
 
 # TLS Alert messages
-ALERT_HEADER = "1503010002"
-ALERT_MESSAGES = {'CLOSE_NOTIFY': binascii.unhexlify(ALERT_HEADER + "0200"),
-                  'UNEXPECTED_MESSAGE': binascii.unhexlify(ALERT_HEADER + "020A"),
-                  'DECRYPTION_FAILED': binascii.unhexlify(ALERT_HEADER + "0217"),
-                  'HANDSHAKE_FAILURE': binascii.unhexlify(ALERT_HEADER + "0228"),
-                  'ILLEGAL_PARAMETER': binascii.unhexlify(ALERT_HEADER + "022F"),
-                  'ACCESS_DENIED': binascii.unhexlify(ALERT_HEADER + "0231"),
-                  'DECODE_ERROR': binascii.unhexlify(ALERT_HEADER + "0232"),
-                  'DECRYPT_ERROR': binascii.unhexlify(ALERT_HEADER + "0233"),
-                  'PROTOCOL_VERSION': binascii.unhexlify(ALERT_HEADER + "0246")}
+ALERT_HEADER = '1503010002'
+ALERT_MESSAGES = {'CLOSE_NOTIFY': binascii.unhexlify(ALERT_HEADER + '0200'),
+                  'UNEXPECTED_MESSAGE': binascii.unhexlify(ALERT_HEADER + '020A'),
+                  'DECRYPTION_FAILED': binascii.unhexlify(ALERT_HEADER + '0217'),
+                  'HANDSHAKE_FAILURE': binascii.unhexlify(ALERT_HEADER + '0228'),
+                  'ILLEGAL_PARAMETER': binascii.unhexlify(ALERT_HEADER + '022F'),
+                  'ACCESS_DENIED': binascii.unhexlify(ALERT_HEADER + '0231'),
+                  'DECODE_ERROR': binascii.unhexlify(ALERT_HEADER + '0232'),
+                  'DECRYPT_ERROR': binascii.unhexlify(ALERT_HEADER + '0233'),
+                  'PROTOCOL_VERSION': binascii.unhexlify(ALERT_HEADER + '0246')}
 
 # Ports and nodes
-USER = ""  # Listen requests from everyone
-USER_PORT = 443
-# ENDPOINT = "31.13.93.3"  # touch.facebook.com
-ENDPOINT = "216.58.208.101"  # mail.google.com
-ENDPOINT_PORT = 443
+USER = ''  # Listen requests from everyone
+TOUCH_FACEBOOK_IP = '31.13.93.3'  # touch.facebook.com
+GMAIL_IP = '216.58.208.101'  # mail.google.com
+TLS_PORT = 443
 
 # Buffers
 SOCKET_BUFFER = 4096
@@ -67,3 +94,7 @@ SERIAL_POINT_SYSTEM = {1: 20, 2: 16, 3: 12, 4: 10, 5: 8, 6: 6, 7: 4, 8: 3, 9: 2,
 PARALLEL_POINT_SYSTEM = {0: 1}
 POINT_SYSTEM_MAPPING = {'s': SERIAL_POINT_SYSTEM,
                         'p': PARALLEL_POINT_SYSTEM}
+
+# Times a candidate has to be optimal to attack forward
+
+PARALLEL_REPEAT = 3

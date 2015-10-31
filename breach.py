@@ -1,9 +1,17 @@
+'''
+File: breach.py
+Author: Dimitris Karakostas
+Description: BREACH main execution script.
+'''
+
 import sys
 import signal
 import datetime
 import logging
 import parse
+import traceback
 from iolibrary import kill_signal_handler, get_arguments_dict, setup_logger
+
 
 signal.signal(signal.SIGINT, kill_signal_handler)
 
@@ -45,3 +53,4 @@ if __name__ == '__main__':
             breach.debug_logger.debug('Found the following illegal iterations: ' + str(args_dict['illegal_iterations']) + '\n')
     except Exception as e:
         print e
+        traceback.print_exc()

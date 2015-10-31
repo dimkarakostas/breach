@@ -1,3 +1,9 @@
+'''
+File: hillclimbing.py
+Author: Dimitris Karakostas
+Description: Hillclimbing library for JS execution parameters creation.
+'''
+
 import sys
 from iolibrary import get_arguments_dict
 from constants import DIGIT, LOWERCASE, UPPERCASE, DASH, NONCE_1, NONCE_2

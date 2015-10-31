@@ -1,3 +1,9 @@
+'''
+File: connect.py
+Author: Dimitris Karakostas
+Description: Network connection and traffic parsing on TLS level.
+'''
+
 import socket
 import select
 import logging
@@ -6,6 +12,7 @@ import sys
 import signal
 from iolibrary import kill_signal_handler, get_arguments_dict, setup_logger
 import constants
+
 
 signal.signal(signal.SIGINT, kill_signal_handler)
 
@@ -129,10 +136,12 @@ class Connector():
         if is_response:
                 if cont_type in constants.TLS_CONTENT:
                         self.basic_logger.debug('Endpoint %s Length: %d' % (constants.TLS_CONTENT[cont_type], length))
+                        '''
                         if cont_type == 23:
                                 with open('out.out', 'a') as f:
                                     f.write('Endpoint application payload: %d\n' % length)
                                     f.close()
+                        '''
                 else:
                         self.basic_logger.debug('Unassigned Content Type record (len = %d)' % len(data))
                 lg.append('Source : Endpoint')
@@ -142,10 +151,12 @@ class Connector():
                         if cont_type == 22:
                                 if ord(data[constants.MAX_TLS_POSITION]) > constants.MAX_TLS_ALLOWED:
                                     downgrade = True
+                        '''
                         if cont_type == 23:
                                 with open('out.out', 'a') as f:
                                     f.write('User application payload: %d\n' % length)
                                     f.close()
+                        '''
                 else:
                         self.basic_logger.debug('Unassigned Content Type record (len = %d)' % len(data))
                 lg.append('Source : User')
@@ -247,7 +258,7 @@ class Connector():
             self.full_logger.info('Setting up user socket')
             user_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             user_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Set options to reuse socket
-            user_socket.bind((constants.USER, constants.USER_PORT))
+            user_socket.bind((constants.USER, constants.TLS_PORT))
             self.full_logger.info('User socket bind complete')
             user_socket.listen(1)
             self.full_logger.info('User socket listen complete')
@@ -267,7 +278,7 @@ class Connector():
             self.full_logger.info('Setting up endpoint socket')
             endpoint_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.full_logger.info('Connecting endpoint socket')
-            endpoint_socket.connect((constants.ENDPOINT, constants.ENDPOINT_PORT))
+            endpoint_socket.connect((constants.GMAIL_IP, constants.TLS_PORT))
             endpoint_socket.setblocking(0)  # Set non-blocking, i.e. raise exception if send/recv is not completed
             self.endpoint_socket = endpoint_socket
             self.full_logger.info('Endpoint socket is set up')
@@ -370,7 +381,6 @@ class Connector():
         return
 
 if __name__ == '__main__':
-
     args_dict = get_arguments_dict(sys.argv)
     conn = Connector(args_dict)
     conn.full_logger.info('Hillclimbing parameters file created')

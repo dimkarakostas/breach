@@ -11,8 +11,10 @@ Tools to execute [BREACH](http://breachattack.com) attack.
  * Script that parses the lengths sniffed over the network and decides how the attack should continue.
 * hillclimbing.py
  * Script that creates the parameters needed by evil.js.
-* io_library.py
+* iolibrary.py
  * Library with useful function for I/O communication with the user.
+* sniff.py
+ * Network sniffer that provides Ethernet level (and above) packet information.
 * index.html
  * Minimal HTML page that contains the evil js.
 * evil.js

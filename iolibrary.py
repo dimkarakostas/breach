@@ -2,15 +2,29 @@ from os import system
 import sys
 import argparse
 import logging
+import os
 
 
 def kill_signal_handler(signal, frame):
     '''
     Signal handler for killing the execution.
     '''
-    print('Exiting the program per your command')
-    system('rm -f out.out request.txt io_library.pyc hillclimbing.pyc constants.pyc connect.pyc')
-    system('mv basic_breach.log full_breach.log debug.log attack.log win_count.log history/')
+    print('\nExiting the program per your command.')
+    system('rm -f out.out request.txt iolibrary.pyc hillclimbing.pyc constants.pyc connect.pyc parse.pyc sniff.pyc')
+    if not os.path.exists('history'):
+        os.mkdir('history')
+    if os.path.exists('basic_breach.log'):
+        system('mv basic_breach.log history/')
+    if os.path.exists('full_breach.log'):
+        system('mv full_breach.log history/')
+    if os.path.exists('debug.log'):
+        system('mv debug.log history/')
+    if os.path.exists('attack.log'):
+        system('mv attack.log history/')
+    if os.path.exists('win_count.log'):
+        system('mv win_count.log history/')
+    if os.path.exists('sniff.log'):
+        system('mv sniff.log history/')
     sys.exit(0)
 
 
@@ -26,6 +40,7 @@ def get_arguments_dict(args_list):
     parser.add_argument('-m', '--method', metavar='request_method', help='Choose the request method: s => serial, p => parallel')
     parser.add_argument('-lf', '--latest_file', metavar='latest_file_number', type=int, help='Input the latest output file breach.py has created, -1 if first try')
     parser.add_argument('-r', '--request_len', metavar='minimum_request_length', type=int, help='Input the minimum length of the request packet')
+    parser.add_argument('-er', '--endpoint_request_len', metavar='minimum_endpoint_request_length', type=int, help='Input the minimum endpoint length of the endpoint response packet')
     parser.add_argument('-c', '--correct', metavar='correct_value', help='Input the correct value we attack')
     parser.add_argument('-s', '--sample', metavar='sample', type=int, help='Input the sampling ratio')
     parser.add_argument('-i', '--iterations', metavar='number_of_iterations', type=int, help='Input the number of iterations per symbol.')
@@ -42,6 +57,7 @@ def get_arguments_dict(args_list):
     args_dict['method'] = args.method if args.method else 's'
     args_dict['pivot_length'] = args.len_pivot if args.len_pivot else None
     args_dict['minimum_request_length'] = args.request_len if args.request_len else None
+    args_dict['minimum_endpoint_request_length'] = args.endpoint_request_len if args.endpoint_request_len else None
     args_dict['correct_val'] = args.correct if args.correct else None
     args_dict['sampling_ratio'] = args.sample if args.sample else 200000000
     args_dict['iterations'] = args.iterations if args.iterations else 500

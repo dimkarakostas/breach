@@ -23,8 +23,17 @@ class Sniffer(object):
     '''
     def __init__(self, args_dict={}):
         self.args_dict = args_dict
-        if 'sniff_logger' not in args_dict:
+        if 'sniff_full_logger' not in args_dict:
             if args_dict['verbose'] < 3:
+                setup_logger('sniff_full_logger', 'sniff_full.log', args_dict, logging.ERROR)
+            else:
+                setup_logger('sniff_full_logger', 'sniff_full.log', args_dict)
+            self.sniff_full_logger = logging.getLogger('sniff_full_logger')
+            self.args_dict['sniff_full_logger'] = self.sniff_full_logger
+        else:
+            self.sniff_full_logger = args_dict['sniff_full_logger']
+        if 'sniff_logger' not in args_dict:
+            if args_dict['verbose'] < 2:
                 setup_logger('sniff_logger', 'sniff.log', args_dict, logging.ERROR)
             else:
                 setup_logger('sniff_logger', 'sniff.log', args_dict)
@@ -32,6 +41,7 @@ class Sniffer(object):
             self.args_dict['sniff_logger'] = self.sniff_logger
         else:
             self.sniff_logger = args_dict['sniff_logger']
+        self.endpoint_ip = constants.GMAIL_IP
 
     def setup(self):
         '''
@@ -42,7 +52,7 @@ class Sniffer(object):
         except socket.error, msg:
             self.sniff_logger.error('Socket could not be created. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
             sys.exit()
-        self.sniff_logger.info('Network socket setup successfully.')
+        self.sniff_full_logger.info('Network socket setup successfully.')
 
     def eth_addr(self, a):
         '''
@@ -64,7 +74,7 @@ class Sniffer(object):
             eth_header = packet[:constants.ETHERNET_HEADER_LENGTH]
             eth = unpack(constants.ETHERNET_HEADER_UNPACK, eth_header)
             eth_protocol = socket.ntohs(eth[2])
-            self.sniff_logger.debug('Destination MAC : ' + self.eth_addr(packet[0:6]) + ' Source MAC : ' + self.eth_addr(packet[6:12]) + ' Protocol : ' + str(eth_protocol) + ' Time: ' + str(datetime.now()))
+            self.sniff_full_logger.debug('Destination MAC : ' + self.eth_addr(packet[0:6]) + ' Source MAC : ' + self.eth_addr(packet[6:12]) + ' Protocol : ' + str(eth_protocol) + ' Time: ' + str(datetime.now()))
 
             if eth_protocol == constants.IP_TAG:
                 ip_header = packet[constants.ETHERNET_HEADER_LENGTH:20+constants.ETHERNET_HEADER_LENGTH]
@@ -78,7 +88,7 @@ class Sniffer(object):
                 s_addr = socket.inet_ntoa(iph[8])
                 d_addr = socket.inet_ntoa(iph[9])
 
-                self.sniff_logger.debug('Version : ' + str(version) + ' IP Header Length : ' + str(ihl) + ' TTL : ' + str(ttl) + ' Protocol : ' + str(protocol) + ' Source Address : ' + str(s_addr) + ' Destination Address : ' + str(d_addr))
+                self.sniff_full_logger.debug('Version : ' + str(version) + ' IP Header Length : ' + str(ihl) + ' TTL : ' + str(ttl) + ' Protocol : ' + str(protocol) + ' Source Address : ' + str(s_addr) + ' Destination Address : ' + str(d_addr))
 
                 if protocol == constants.TCP_TAG:
                     t = iph_length + constants.ETHERNET_HEADER_LENGTH
@@ -94,13 +104,16 @@ class Sniffer(object):
                     data_size = len(packet) - h_size
                     data = packet[h_size:]
 
-                    self.sniff_logger.debug('Source Port : ' + str(source_port) + ' Dest Port : ' + str(dest_port) + ' Sequence Number : ' + str(sequence) + ' Acknowledgement : ' + str(acknowledgement) + ' TCP header length : ' + str(tcph_length) + ' Data Size: ' + str(data_size) + '\nData : ' + data)
+                    self.sniff_full_logger.debug('Source Port : ' + str(source_port) + ' Dest Port : ' + str(dest_port) + ' Sequence Number : ' + str(sequence) + ' Acknowledgement : ' + str(acknowledgement) + ' TCP header length : ' + str(tcph_length) + ' Data Size: ' + str(data_size) + '\nData : ' + data)
 
-                    with open('out.out', 'a') as f:
-                        if str(s_addr) == constants.GMAIL_IP:
-                            f.write('Endpoint application payload: ' + str(data_size) + '\n')
-                        elif str(d_addr) == constants.GMAIL_IP:
-                            f.write('User application payload: ' + str(data_size) + '\n')
+                    if self.endpoint_ip in [str(s_addr), str(d_addr)]:
+                        self.sniff_logger.debug('Version : ' + str(version) + ' IP Header Length : ' + str(ihl) + ' TTL : ' + str(ttl) + ' Protocol : ' + str(protocol) + ' Source Address : ' + str(s_addr) + ' Destination Address : ' + str(d_addr))
+                        self.sniff_logger.debug('Source Port : ' + str(source_port) + ' Dest Port : ' + str(dest_port) + ' Sequence Number : ' + str(sequence) + ' Acknowledgement : ' + str(acknowledgement) + ' TCP header length : ' + str(tcph_length) + ' Data Size: ' + str(data_size))
+                        with open('out.out', 'a') as f:
+                            if str(s_addr) == self.endpoint_ip:
+                                f.write('Endpoint application payload: ' + str(data_size) + '\n')
+                            elif str(d_addr) == self.endpoint_ip:
+                                f.write('User application payload: ' + str(data_size) + '\n')
 
                 elif protocol == constants.ICMP_TAG:
                     u = iph_length + constants.ETHERNET_HEADER_LENGTH
@@ -114,7 +127,7 @@ class Sniffer(object):
                     data_size = len(packet) - h_size
                     data = packet[h_size:]
 
-                    self.sniff_logger.debug('Type : ' + str(icmp_type) + ' Code : ' + str(code) + ' Checksum : ' + str(checksum) + '\nData : ' + data)
+                    self.sniff_full_logger.debug('Type : ' + str(icmp_type) + ' Code : ' + str(code) + ' Checksum : ' + str(checksum) + '\nData : ' + data)
 
                 elif protocol == constants.UDP_TAG:
                     u = iph_length + constants.ETHERNET_HEADER_LENGTH
@@ -129,10 +142,10 @@ class Sniffer(object):
                     data_size = len(packet) - h_size
                     data = packet[h_size:]
 
-                    self.sniff_logger.debug('Source Port : ' + str(source_port) + ' Dest Port : ' + str(dest_port) + ' Length : ' + str(length) + ' Checksum : ' + str(checksum) + '\nData : ' + data)
+                    self.sniff_full_logger.debug('Source Port : ' + str(source_port) + ' Dest Port : ' + str(dest_port) + ' Length : ' + str(length) + ' Checksum : ' + str(checksum) + '\nData : ' + data)
 
                 else:
-                    self.sniff_logger.debug('Unknown Protocol')
+                    self.sniff_full_logger.debug('Unknown Protocol')
 
 
 if __name__ == '__main__':

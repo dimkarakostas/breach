@@ -25,6 +25,8 @@ def kill_signal_handler(signal, frame):
         system('mv win_count.log history/')
     if os.path.exists('sniff.log'):
         system('mv sniff.log history/')
+    if os.path.exists('sniff_full.log'):
+        system('mv sniff_full.log history/')
     sys.exit(0)
 
 

@@ -97,4 +97,4 @@ POINT_SYSTEM_MAPPING = {'s': SERIAL_POINT_SYSTEM,
 
 # Times a candidate has to be optimal to attack forward
 
-PARALLEL_REPEAT = 3
+PARALLEL_REPEAT = 5

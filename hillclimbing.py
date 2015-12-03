@@ -78,8 +78,8 @@ def create_request_file(args_dict):
     '''
     Create the 'request' file used by evil.js to issue the requests.
     '''
-    method_functions = {'s': serial_execution,
-                        'p': parallel_execution}
+    method_functions = {'serial': serial_execution,
+                        'parallel': parallel_execution}
 
     prefix = args_dict['prefix']
     assert prefix, 'Empty prefix argument'

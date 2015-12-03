@@ -1,8 +1,8 @@
-from os import system
+from os import system, mkdir, path
+from shutil import move, copy
 import sys
 import argparse
 import logging
-import os
 
 
 def kill_signal_handler(signal, frame):
@@ -11,21 +11,21 @@ def kill_signal_handler(signal, frame):
     '''
     print('\nExiting the program per your command.')
     system('rm -f out.out request.txt iolibrary.pyc hillclimbing.pyc constants.pyc connect.pyc parse.pyc sniff.pyc')
-    if not os.path.exists('history'):
-        os.mkdir('history')
-    if os.path.exists('basic_breach.log'):
+    if not path.exists('history'):
+        mkdir('history')
+    if path.exists('basic_breach.log'):
         system('mv basic_breach.log history/')
-    if os.path.exists('full_breach.log'):
+    if path.exists('full_breach.log'):
         system('mv full_breach.log history/')
-    if os.path.exists('debug.log'):
+    if path.exists('debug.log'):
         system('mv debug.log history/')
-    if os.path.exists('attack.log'):
+    if path.exists('attack.log'):
         system('mv attack.log history/')
-    if os.path.exists('win_count.log'):
+    if path.exists('win_count.log'):
         system('mv win_count.log history/')
-    if os.path.exists('sniff.log'):
+    if path.exists('sniff.log'):
         system('mv sniff.log history/')
-    if os.path.exists('sniff_full.log'):
+    if path.exists('sniff_full.log'):
         system('mv sniff_full.log history/')
     sys.exit(0)
 
@@ -36,39 +36,11 @@ def get_arguments_dict(args_list):
     '''
     parser = argparse.ArgumentParser(description='Parser of breach.py output')
     parser.add_argument('caller_name', metavar='caller_name', help='The program that called the argument parser.')
-    parser.add_argument('-a', '--alpha_types', metavar='alphabet', nargs='+', help='Choose alphabet types: n => digits, l => lowercase letters, u => uppercase letters, d => - and _')
-    parser.add_argument('-l', '--len_pivot', metavar='pivot_length', type=int, help='Input the (observed payload) length value of the pivot packet')
-    parser.add_argument('-p', '--prefix', metavar='bootstrap_prefix', help='Input the already known prefix needed for bootstrap')
-    parser.add_argument('-m', '--method', metavar='request_method', help='Choose the request method: s => serial, p => parallel')
-    parser.add_argument('-lf', '--latest_file', metavar='latest_file_number', type=int, help='Input the latest output file breach.py has created, -1 if first try')
-    parser.add_argument('-r', '--request_len', metavar='minimum_request_length', type=int, help='Input the minimum length of the request packet')
-    parser.add_argument('-er', '--endpoint_request_len', metavar='minimum_endpoint_request_length', type=int, help='Input the minimum endpoint length of the endpoint response packet')
-    parser.add_argument('-c', '--correct', metavar='correct_value', help='Input the correct value we attack')
-    parser.add_argument('-s', '--sample', metavar='sample', type=int, help='Input the sampling ratio')
-    parser.add_argument('-i', '--iterations', metavar='number_of_iterations', type=int, help='Input the number of iterations per symbol.')
-    parser.add_argument('-t', '--refresh_time', metavar='refresh_time', type=int, help='Input the refresh time in seconds')
-    parser.add_argument('--wdir', metavar='web_application_directory', help='The directory where you have added evil.js')
     parser.add_argument('--execute_breach', action='store_true', help='Initiate breach attack via breach.py')
-    parser.add_argument('--verbose', metavar='verbosity_level', type=int, help='Choose verbosity level: 0 => no logs, 1 => attack logs, 2 => debug logs, 3 => basic breach logs, 4 => full logs')
-    parser.add_argument('--log_to_screen', action='store_true', help='Print logs to stdout')
     args = parser.parse_args(args_list)
 
     args_dict = {}
-    args_dict['alpha_types'] = args.alpha_types if args.alpha_types else None
-    args_dict['prefix'] = args.prefix if args.prefix else None
-    args_dict['method'] = args.method if args.method else 's'
-    args_dict['pivot_length'] = args.len_pivot if args.len_pivot else None
-    args_dict['minimum_request_length'] = args.request_len if args.request_len else None
-    args_dict['minimum_endpoint_request_length'] = args.endpoint_request_len if args.endpoint_request_len else None
-    args_dict['correct_val'] = args.correct if args.correct else None
-    args_dict['sampling_ratio'] = args.sample if args.sample else 200000000
-    args_dict['iterations'] = args.iterations if args.iterations else 500
-    args_dict['refresh_time'] = args.refresh_time if args.refresh_time else 60
-    args_dict['wdir'] = args.wdir if args.wdir else '/var/www/breach/'
     args_dict['execute_breach'] = True if args.execute_breach else False
-    args_dict['log_to_screen'] = True if args.log_to_screen else False
-    args_dict['verbose'] = args.verbose if args.verbose else 0
-    args_dict['latest_file'] = args.latest_file if args.latest_file else 0
     return args_dict
 
 
@@ -86,4 +58,23 @@ def setup_logger(logger_name, log_file, args_dict, level=logging.DEBUG):
         streamHandler = logging.StreamHandler()
         streamHandler.setFormatter(formatter)
         l.addHandler(streamHandler)
-    return
+
+
+def setup_command_and_control(args):
+    '''
+    Setup the web application files that execute the command and control.
+    '''
+    with open('evil.js', 'r') as f:
+        with open('tmp', 'w') as tmp:
+            for line in f:
+                if '%%%endpoint_url%%%' in line:
+                    line = line.replace('%%%endpoint_url%%%', args['endpoint_url'])
+                elif '%%%request_timeout%%%' in line:
+                    line = line.replace('%%%request_timeout%%%', str(args['request_timeout']))
+                elif '%%%error_request_timeout%%%' in line:
+                    line = line.replace('%%%error_request_timeout%%%', str(args['error_request_timeout']))
+                tmp.write(line)
+    if not path.exists(args['wdir']):
+        mkdir(args['wdir'])
+    move('tmp', args['wdir'] + 'evil.js')
+    copy('index.html', args['wdir'])

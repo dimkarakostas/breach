@@ -241,7 +241,7 @@ class Parser():
                 alphabet.pop(0)
                 for i in enumerate(alphabet):
                     alphabet[i[0]] = i[1].split()[0]
-                found_correct = (j[1] == self.correct_val) if self.method == 's' else (self.correct_val in alphabet)
+                found_correct = (j[1] == self.correct_val) if self.method == 'serial' else (self.correct_val in alphabet)
                 if found_correct:
                     correct_pos = pos
                     correct_len = j[0]
@@ -295,7 +295,7 @@ class Parser():
         with open(self.history_folder + self.filename + '/result_' + self.filename, 'a') as result_file:
             result_file.write('\n')
             result_file.write('Iteration %d\n\n' % self.iterations[self.alphabet[0]])
-        if self.method == 's' and combined_sorted:
+        if self.method == 'serial' and combined_sorted:
             with open(self.history_folder + self.filename + '/result_' + self.filename, 'a') as result_file:
                 result_file.write('Correct Value is \'%s\' with divergence %f from second best.\n' % (combined_sorted[0][1], combined_sorted[1][0] - combined_sorted[0][0]))
         return points
@@ -438,7 +438,7 @@ class Parser():
             mkdir(self.history_folder + self.filename)
         if path.exists('request.txt'):
             system('sudo cp request.txt ' + self.history_folder + self.filename + '/request_' + self.filename)
-        if self.method == 'p' and self.correct_val:
+        if self.method == 'parallel' and self.correct_val:
             if self.correct_val in self.alphabet[0]:
                 self.correct_val = self.alphabet[0]
             elif self.correct_val in self.alphabet[1]:
@@ -480,15 +480,15 @@ class Parser():
             if path.exists('sample.log'):
                 system('mv sample.log ' + self.history_folder + self.filename + '/')
             points = self.log_with_correct_value() if self.correct_val else self.log_without_correct_value(combined_sorted)
-            if self.method == 's':
+            if self.method == 'serial':
                 correct_alphabet = self.log_result_serial(combined_sorted, points)
-            elif self.method == 'p':
+            elif self.method == 'parallel':
                 correct_alphabet = self.log_result_parallel(combined_sorted, points)
 
             if path.exists(self.history_folder + self.filename + '/result_' + self.filename):
                 system('cat ' + self.history_folder + self.filename + '/result_' + self.filename)
             points = self.sort_dictionary_values(points, True)
-            if (self.method == 'p' and points[0][0] > self.checkpoint/2) or (self.method == 's' and points[0][0] > self.checkpoint*10):
+            if (self.method == 'parallel' and points[0][0] > self.checkpoint/2) or (self.method == 'serial' and points[0][0] > self.checkpoint*10):
                 self.continue_next_hop = self.attack_forward(correct_alphabet, points)
                 break
             time.sleep(self.refresh_time)

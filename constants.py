@@ -92,8 +92,8 @@ NONCE_2 = 'znq'
 # Point systems for various methods, used in parse.py
 SERIAL_POINT_SYSTEM = {1: 20, 2: 16, 3: 12, 4: 10, 5: 8, 6: 6, 7: 4, 8: 3, 9: 2, 10: 1}
 PARALLEL_POINT_SYSTEM = {0: 1}
-POINT_SYSTEM_MAPPING = {'s': SERIAL_POINT_SYSTEM,
-                        'p': PARALLEL_POINT_SYSTEM}
+POINT_SYSTEM_MAPPING = {'serial': SERIAL_POINT_SYSTEM,
+                        'parallel': PARALLEL_POINT_SYSTEM}
 
 # Times a candidate has to be optimal to attack forward
 

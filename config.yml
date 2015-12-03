@@ -1,0 +1,21 @@
+endpoint:
+    endpoint_url: https://mail.google.com/mail/u/0/x/?s=q&q=
+    prefix: AF6bup
+    minimum_request_length: 200
+    minimum_endpoint_request_length: 1000
+    pivot_length: False
+execution:
+    alpha_types: ['n', 'l', 'u', 'd']
+    method: parallel
+    iterations: 2000
+    refresh_time: 5
+    sampling_ratio: 2000000000
+    request_timeout: 1000
+    error_request_timeout: 10000
+    correct_val: False
+local:
+    wdir: /var/www/breach/
+    latest_file: 0
+logging:
+    verbose: 3
+    log_to_screen: False

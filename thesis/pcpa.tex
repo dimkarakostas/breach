@@ -37,8 +37,8 @@ computations or encryptions, before finally guessing the value of
 A cryptosystem is indistinguishable under partially chosen plaintext attack, if
 every probabilistic polynomial time adversary has only a negligible advantage on
 finding \begin{math}b\end{math} over random guessing. An adversary is said to
-have a negligible advantage if it wins the above game with probability
-\begin{math}\frac{1}{2} + \epsilon(k)\end{math}, where
+have a negligible advantage if a win in the above game can be achieved with
+probability \begin{math}\frac{1}{2} + \epsilon(k)\end{math}, where
 \begin{math}\epsilon(k)\end{math} is a negligible function in a security
 parameter \begin{math}k\end{math}.
 
@@ -66,7 +66,7 @@ provides an informal proof that IND-PCPA is at least as strong as IND-CPA.
 
 In this section we will investigate the relationship between compression and
 encryption, regarding how partially chosen plaintext attacks can exploit either
-one method in protocols that allow such functionality schemes.
+method in protocols that allow such functionality schemes.
 
 \subsection{Compression-before-encryption and vice versa}
 
@@ -75,28 +75,26 @@ plaintext, it would be interesting to investigate the order those
 transformations should be executed.
 
 Lossless compression algorithms rely on statistical patterns to reduce the size
-of the data to be compressed, without losing information. Such a method is
-possible, since most real-world data present statistical redundancy. However, it
+of the plaintext data without losing information. Such method is possible,
+since most real-world data present statistical redundancy. However, it
 can be understood that such compression algorithms will fail to compress well
-certain kinds data sets, that display no statistical pattern.
+certain kinds of data sets that display no statistical patterns.
 
-Encryption algorithms, on the other hand, rely on adding entropy to the
-plaintext before producing the ciphertext. If the ciphertext contained repeated
-portions, these statistical patterns could be exploited in order to deduce
-information about the plaintext.
+Encryption algorithms, on the other hand, rely on adding randomness to the
+produced ciphertext. If the ciphertext presented high entropy, these statistical
+patterns could be exploited in order to deduce information about the plaintext.
 
 In the scheme where we apply compression after encryption, the ciphertext to be
-compressed should demonstrate no statistical analysis exploits, not allowing
-compression to reduce the size of the data. In addition, compression after
-encryption would not increase the security of the protocol.
+compressed would demonstrate no statistical analysis exploits resulting in
+poor compression performance. In addition, compression after encryption would
+not increase the security of the protocol.
 
 On the other contrary, applying encryption after compression seems a more
 preferable solution. The compression algorithm can use the statistical
-redundancies of the plaintext to perform well, while the encryption algorithm,
-if applied correctly on the compressed text, should produce a random stream of
-data. Also, since compression introduces additional entropy, this scheme
-should make it harder for attackers, who rely on differential cryptanalysis,
-to break the system.
+redundancies of the plaintext to perform well, while the encryption algorithm
+should produce a seemingly random stream of data. Also, since compression
+introduces additional entropy, this scheme should make it harder for attackers,
+who rely on differential cryptanalysis, to break the system.
 
 \subsection{PCPA scenario on compression-before-encryption protocol}
 
@@ -108,7 +106,7 @@ manner:
 where \begin{math}c\end{math} is the ciphertext and \begin{math}m\end{math} is
 the plaintext.
 
-Suppose the plaintext contains a specific secret, among random strings of data,
+Suppose the plaintext contains a specific secret among random strings of data
 and the attacker can issue a PCPA with a chosen plaintext, which we will call
 reflection. The plaintext then takes the form:
 
@@ -119,8 +117,8 @@ where \begin{math}n_1, n_2, n_3\end{math} are random nonces.
 If the reflection is the same as the secret, the compression mechanism will
 recognize this pattern and compress the two data portions. In other case, the
 two strings will not demonstrate any statistical redundancy and compression will
-perform worse. As a result, in the first case the data to be encrypted will be
-smaller than in the second case.
+perform worse. As a result, in the first case the compressed unencrypted data
+will be smaller than in the second case.
 
 Usually encryption is done by a stream or a block cipher. In the first case, the
 lengths of a plaintext and the corresponding ciphertext are identical, whereas
@@ -131,25 +129,25 @@ the lengths of the two ciphertexts.
 
 \section{Known PCPA exploits}\label{sec:known_pcpa}
 
-In this section, we cite known attacks that use the partially chosen plaintext
-attack vector, in a context as described in the previous section.
+In this section, we present known attacks that use the partially chosen
+plaintext attack vector.
 
 \subsection{CRIME}
 
 \texttt{Compression Ratio Info-leak Made Easy} (CRIME) \cite{crime} is a
 security exploit that was revealed at the 2012
-ekoparty\footnote{\url{https://www.ekoparty.org}}.  As stated, "it decrypts
+ekoparty\footnote{\url{https://www.ekoparty.org}}. As stated, "it decrypts
 HTTPS traffic to steal cookies and hijack sessions".
 
-In order for the attack to succeed, there are two requirements. Firstly, the
-attacker should be able to sniff the victim's network traffic, so as to see the
+In order for the attack to succeed there are two requirements. Firstly, the
+attacker should be able to sniff the victim's network traffic to see the
 request/response packet lengths. Secondly, the victim should visit a website
 controlled by the attacker or surf on non-HTTPS sites, in order for the CRIME
 script to be executed.
 
 If the above requirements are met, the attacker makes a guess for the secret to
 be stolen and asks the browser to send a request with this guess included in the
-path.  The attacker can then observe the length of the request and, if the
+path. The attacker can then observe the length of the request and, if the
 length is less than usual, it is assumed that the guessed string was compressed
 with the secret, so it was correct.
 
@@ -162,20 +160,20 @@ that support TLS compression are also vulnerable.
 
 \texttt{Browser Reconnaissance and Exfiltration via Adaptive Compression of
 Hypertext (BREACH)} \cite{breach} is a security exploit that is based on CRIME.
-Presented at the August 2013 Black Hat
+Presented on the 2013 Black Hat USA
 conference\footnote{\url{https://www.blackhat.com}}, it targets the size of
 compressed HTTP responses and extracts secrets hidden in the response body.
 
 Like the CRIME attack, the attacker needs to sniff the victim's network traffic,
 as well as force the victim's browser to issue requests to the chosen endpoint.
 Additionally, it works against stream ciphers only and assumes zero noise in the
-response. Moreover, it requests a known prefix for the secret, although a
-solution for this condition would be to guess the first two characters of the
-secret, in order to bootstrap the attack.
+response. Moreover, it demands a known prefix for the secret, although a
+proposed solution for this condition would be to guess the first two characters
+of the secret in order to bootstrap the attack.
 
 From then on, the methodology is in general the same as CRIME's. The attacker
 guesses a value, which is then included in the response body along with the
-secret and, if correct, it is compressed well with it, resulting in smaller
+secret and, if correct, it is compressed well with it resulting in smaller
 response length.
 
 BREACH has not yet been fully mitigated, although Gluck, Harris and Prado

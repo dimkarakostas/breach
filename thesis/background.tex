@@ -3,21 +3,21 @@
 In this chapter we will provide the necessary background needed for the user to
 understand the mechanisms used later in the paper. The description of the
 following systems is a brief introduction, intended to familiarize the reader
-with concepts that are fundamental for the each one.
+with concepts that are fundamental for each one.
 
 Specifically, section \ref{sec:gzip} describes the functionality of the gzip
 compression software and the algorithms that it entails. Section
 \ref{sec:sameorigin} covers the same-origin policy that applies in the web
 application security model. In section \ref{sec:tls} we explain the Transport
-Layer Security, which is the current widely used protocol that provide
-communications security over the Internet. Finally, in section \ref{sec:mitm} we
-describe attack methodologies in order for an adversary to perform a
-Man-in-the-Middle attack, such as ARP spoofing or DNS poisoning.
+Layer Security, which is the widely used protocol that provides communications
+security over the Internet. Finally, in section \ref{sec:mitm} we describe
+attack methodologies, such as ARP spoofing or DNS poisoning, in order for an
+adversary to perform a Man-in-the-Middle attack.
 
 \section{gzip}\label{sec:gzip}
 
 gzip is a software application used for file compression and decompression. It
-is the most used compression method on the Internet, integrated in protocols
+is the most popular compression method on the Internet, integrated in protocols
 such as the Hypertext Transfer Protocol (HTTP), the Extensible Messaging and
 Presence Protocol (XMPP) and many more. Derivatives of gzip include the tar
 utility, which can extract .tar.gz files, as well as zlib, an abstraction of the
@@ -25,7 +25,7 @@ DEFLATE algorithm in library
 form.\footnote{\url{https://en.wikipedia.org/wiki/Gzip}}
 
 It is based on the DEFLATE algorithm, which is a combination of LZ77 and Huffman
-coding. DEFLATE could be described in short by the following encryption schema:
+coding. DEFLATE could be described in short by the following compression schema:
 
 \begin{math}DEFLATE(m) = Huffman(LZ77(m))\end{math}
 
@@ -39,13 +39,13 @@ in 1977 \cite{lz77}. It achieves compression by replacing repeated occurrences
 of data with references to a copy of the same data existing earlier in the
 uncompressed data stream. The reference is composed of a pair of numbers, the
 first of which represents the length of the repeated portion and the second
-describes the distance backward in the stream, all the way to the beginning of
-the portion. In order to spot repeats, the protocol needs to keep track of some
-amount of the most recent data, specifically the latest 32 kilobytes. This data
-is held in a sliding window, so in order for a portion of data to be compressed,
-the initial appearance of it needs to have occurred at most 32 Kb up the data
-stream. Also, the minimum length of a text to be compressed is 3 characters and
-compressed text can refer to literals as well as pointers.
+describes the distance backward in the stream. In order to spot repeats, the
+protocol needs to keep track of some amount of the most recent data,
+specifically the latest 32 kilobytes. This data is held in a sliding window, so
+in order for a portion of data to be compressed, the initial appearance of it
+needs to have occurred at most 32 Kb up the data stream. Also, the minimum
+length of a text that can be compressed is 3 characters and compressed text can
+refer to literals as well as pointers.
 
 Below you can see an example of a step-by-step execution of the algorithm for a
 chosen text:
@@ -132,7 +132,7 @@ different hostname (\textit{example.com} vs \textit{head.example.com}).
 Same-origin policy is particularly important in modern web applications, that
 rely greatly on HTTP cookies to maintain authenticated sessions. If same-origin
 policy was not implemented, the confidentiality and integrity of cookies, as
-well as every other content of web pages, would have been compromised. However,
+well as every other content of web pages, would be compromised. However,
 despite the use of same-origin policy by modern browsers, there exist attacks
 that enable an adversary to bypass it and compromise a user's communication with
 a website. Two major types of such attacks, cross-site scripting and cross-site
@@ -146,12 +146,12 @@ security vulnerability that allows an adversary to inject a client-side script
 into web pages viewed by other users. That way, same-origin policy can be
 bypassed and sensitive data handled by the vulnerable website may be
 compromised. XSS could be divided into two major types, \texttt{non-persistent}
-and \texttt{persistent}, which will be described below.
+and \texttt{persistent}.
 
 \texttt{Non-persistent} XSS vulnerabilities are the most common. They show up
 when the web server does not parse the input, in order to escape or reject HTML
 control characters, allowing for scripts injected to the input to run
-unnoticeable.  Usual methods of performing non-persistent XSS include mail or
+unnoticeable. Usual methods of performing non-persistent XSS include mail or
 website URL links and search requests.
 
 \texttt{Persistent} XSS occurs when data provided by the attacker are stored by
@@ -166,9 +166,9 @@ message boards.
 Cross-site request forgery
 (CSRF)\footnote{\url{https://en.wikipedia.org/wiki/Cross-site_request_forgery}}
 is an exploit that allows an attacker to issue unauthorized commands to a
-website, on behalf of a user the website trusts.  The attacker can then forge a
+website, on behalf of a user the website trusts. The attacker can then forge a
 request that performs actions or posts data on a website the victim is logged
-in, execute remote code with root privileges or compromise a root certificate,
+in, execute remote code with root privileges or compromise a root certificate
 resulting in a breach of an entire Public Key Infrastructure (PKI).
 
 CSRF can be performed when the victim is trusted by a website and the attacker
@@ -177,7 +177,7 @@ example, when Alice visits a web page that contains the HTML image tag
 \textit{<img
 src="\url{http://bank.example.com/withdraw?account=Alice&amount=1000000&for=Mallory}">},
 that Mallory has injected, a request from Alice's browser to the
-\texttt{example} bank's website will be issued, stating for an amount of
+\texttt{example} bank's website will be issued, stating an amount of
 1.000.000 to be transferred from Alice's account to Mallory's. If Alice is
 logged in the \texttt{example} bank's website, the browser will include the
 cookie containing Alice's authentication information in the request, validating
@@ -191,8 +191,8 @@ sets a cookie, which contains a random token that validates a specific user
 session. Client side reads that token and includes it in a HTTP header sent with
 each request to the web application. Since only JavaScript running within the
 same origin will be allowed to read the token, we can assume that its value is
-safe from unauthorized scripts that aim read and copy it to a custom header, in
-order to mark a rogue request as valid.
+safe from unauthorized scripts that aim to read and copy it to a custom header,
+in order to mark a rogue request as valid.
 
 \section{Transport Layer Security}\label{sec:tls}
 
@@ -224,18 +224,18 @@ and the format of TLS records.
 \includegraphics[width=0.7\textwidth]{diagrams/tls_handshake.png}\end{figure}
 
 The above sequence diagram presents the functionality of TLS handshake. User and
-server exchange the basic parameters of the connection, that is the protocol
+server exchange the basic parameters of the connection such as the protocol
 version, cipher suite, compression method and random numbers, via the
 ClientHello and ServerHello records. The server then provides all information
-needed so that the user validates and uses the asymmetric server key, in order
+needed for the user to validate and use the asymmetric server key, in order
 to compute the symmetric key that will be used for the rest of the
 communication. The client computes a \texttt{PreMasterKey}, that is sent to the
 server, which is then used by both parties to compute the symmetric key.
 Finally, both sides exchange and validate hash and MAC codes over all the
 previous messages, after which they both have the ability to communicate safely.
 
-This functionality is applied only for the basic TLS handshake.
-Client-authenticated and resumed handshakes work similarly, however they are not
+This functionality is used only for the basic TLS handshake.
+Client-authenticated and resumed handshakes work similarly, although they are not
 relevant for the purpose of this paper.
 
 \subsection{TLS record}
@@ -254,7 +254,7 @@ Handshake \\ 0x17 & Application \\ 0x18 & Heartbeat \\ \hline \end{tabular}
 \end{table}
 
 The second field defines the TLS version for the record message, which is
-identified by the major and minor numbers as below:
+identified by the major and minor numbers:
 
 \begin{table}[H] \centering \begin{tabular}{ | l | l | l | } \hline
 \textbf{Major} & \textbf{Minor} & \textbf{Version} \\ \hline 3 & 0 & SSL 3.0 \\
@@ -262,7 +262,7 @@ identified by the major and minor numbers as below:
 \end{table}
 
 The aggregated length of the payload of the record, the MAC and the padding is
-then calculated by the following two fields as: \begin{math}256*(bits 15..8) +
+then calculated by the following two fields: \begin{math}256*(bits 15..8) +
 (bits 7..0)\end{math}.
 
 Finally, the payload of the record, which, depending on the type, may be
@@ -282,9 +282,9 @@ both parties and convince them to be trusted.
 \begin{figure}[H] \caption{Man-in-the-Middle.} \centering
 \includegraphics[width=1\textwidth]{diagrams/mitm.png}\end{figure}
 
-MitM attacks can be mitigated by using end-to-end cryptography, mutual
+MitM attacks can be mitigated using end-to-end cryptography, mutual
 authentication or PKIs. However, some attacks manage to bypass such mitigation
-techniques. Below, we describe two such attacks, ARP Spoofing and DNS cache
+techniques. Below we describe two such attacks, ARP Spoofing and DNS cache
 poisoning.
 
 \subsection{ARP Spoofing}

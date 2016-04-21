@@ -6,10 +6,13 @@
 
 Συγκεκριμένα, προτείνεται μια νέα ιδιότητα που χαρακτηρίζει κρυπτοσυστήματα, η
 μη-διακρισιμότητα ενάντια σε επιθέσεις μερικώς επιλεγμένου κειμένου (IND-PCPA),
-καθώς και ένα μοντέλο επίθεσης που χρησιμοποιεί αυτή την ιδιότητα. Προκειμένου
-να ξεπεραστούν εμπόδια που παρουσιάζονται σε συστήματα του πραγματικού κόσμου,
-προτείνονται στατιστικές μέθοδοι, οι οποίες βελτιώνουν την επίδοση και
-εγκυρότητα της επίθεσης.
+καθώς και ένα μοντέλο επίθεσης που χρησιμοποιεί αυτή την ιδιότητα.
+
+Προκειμένου να ξεπεραστούν εμπόδια που παρουσιάζονται σε συστήματα του
+πραγματικού κόσμου, προτείνονται στατιστικές μέθοδοι, οι οποίες βελτιώνουν την
+επίδοση και εγκυρότητα της επίθεσης. Επιπλεόν, αναπτύχθηκαν τεχνικές
+βελτιστοποίησης οι οποίες συντομεύουν τη διάρκεια της επίθεσης και καθιστούν τα
+αποτελέσματά της πιο έμπιστα.
 
 Τα πειράματα που διεξήχθησαν κατά τη διάρκεια της εργασίας αφορούσαν σε δύο
 ευρέως χρησιμοποιούμενα συστήματα, το Facebook Chat και το Gmail, για την
@@ -18,9 +21,12 @@
 και απέδειξαν ότι τα δύο αυτά συστήματα δεν είναι IND-PCPA, όσον αφορά
 συγκεκριμένους τύπους μυστικών.
 
-Τέλος, προτείνονται καινοτόμες τεχνικές, οι οποίες θα οδηγήσουν σε πλήρη
+Τέλος, προτείνονται καινοτόμες τεχνικές οι οποίες θα οδηγήσουν σε πλήρη
 αντιμετώπιση επιθέσεων που ακολουθούν το μοντέλο που προτείνεται, όπως η
 επίθεση που παρουσιάστηκε στην παρούσα εργασία.
+
+Ανανεωμένες εκδόσεις της παρούσας εργασίας μπορούν να βρεθούν στον ακόλουθο
+σύνδεσμο: \url{https://github.com/dimkarakostas/breach}.
 
 \end{abstractgr}
 
@@ -31,16 +37,19 @@ attacks on compressed encrypted protocols.
 
 A new property of cryptosystems is proposed, called Indistinguishability under
 Partially Chosen Plaintext Attack (IND-PCPA), along with an attack model that
-works under such a mechanism. In order to bypass obstacles of real-world
-systems, statistical methods were proposed, to improve the performance and
-validity of the attack.
+works under such a mechanism.
+
+In order to bypass obstacles of real-world systems, statistical methods were
+proposed to improve the performance and validity of the attack. Furthermore,
+optimization techniques were developed in order to shorten the attack execution
+time and enhance the confidence on the accuracy of the results.
 
 Experiments were conducted on two widely used systems, Facebook Chat and Gmail, using
 a Python framework that was implemented for the purpose of this paper. Results
 in lab environment revealed that those two systems are not IND-PCPA, regarding
 certain types of secrets.
 
-Finally, novel techniques were proposed, that could lead to complete mitigation
+Finally, novel techniques were proposed that could lead to complete mitigation
 of attacks that follow the proposed model.
 
 \end{abstracten}

@@ -75,10 +75,10 @@ plaintext, it would be interesting to investigate the order those
 transformations should be executed.
 
 Lossless compression algorithms rely on statistical patterns to reduce the size
-of the plaintext data without losing information. Such method is possible,
-since most real-world data present statistical redundancy. However, it
-can be understood that such compression algorithms will fail to compress well
-certain kinds of data sets that display no statistical patterns.
+of the plaintext data without losing information. Such method is possible, since
+most real-world data present statistical redundancy. However, such compression
+algorithms will fail to effectively compress certain kinds of data sets that
+display no statistical patterns.
 
 Encryption algorithms, on the other hand, rely on adding randomness to the
 produced ciphertext. If the ciphertext presented high entropy, these statistical
@@ -93,7 +93,7 @@ On the other contrary, applying encryption after compression seems a more
 preferable solution. The compression algorithm can use the statistical
 redundancies of the plaintext to perform well, while the encryption algorithm
 should produce a seemingly random stream of data. Also, since compression
-introduces additional entropy, this scheme should make it harder for attackers,
+increases entropy per symbol, this scheme should make it harder for attackers,
 who rely on differential cryptanalysis, to break the system.
 
 \subsection{PCPA scenario on compression-before-encryption protocol}
@@ -115,7 +115,7 @@ reflection. The plaintext then takes the form:
 where \begin{math}n_1, n_2, n_3\end{math} are random nonces.
 
 If the reflection is the same as the secret, the compression mechanism will
-recognize this pattern and compress the two data portions. In other case, the
+recognize this pattern and compress the two data portions. Otherwise, the
 two strings will not demonstrate any statistical redundancy and compression will
 perform worse. As a result, in the first case the compressed unencrypted data
 will be smaller than in the second case.

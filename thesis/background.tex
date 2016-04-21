@@ -1,14 +1,14 @@
 \chapter{Theoretical background}\label{background}
 
 In this chapter we will provide the necessary background needed for the user to
-understand the mechanisms used later in the paper. The description of the
+understand the mechanisms used later in the work. The description of the
 following systems is a brief introduction, intended to familiarize the reader
 with concepts that are fundamental for each one.
 
 Specifically, section \ref{sec:gzip} describes the functionality of the gzip
 compression software and the algorithms that it entails. Section
 \ref{sec:sameorigin} covers the same-origin policy that applies in the web
-application security model. In section \ref{sec:tls} we explain the Transport
+application security model. In section \ref{sec:tls} we explain Transport
 Layer Security, which is the widely used protocol that provides communications
 security over the Internet. Finally, in section \ref{sec:mitm} we describe
 attack methodologies, such as ARP spoofing or DNS poisoning, in order for an
@@ -16,15 +16,13 @@ adversary to perform a Man-in-the-Middle attack.
 
 \section{gzip}\label{sec:gzip}
 
-gzip is a software application used for file compression and decompression. It
-is the most popular compression method on the Internet, integrated in protocols
-such as the Hypertext Transfer Protocol (HTTP), the Extensible Messaging and
-Presence Protocol (XMPP) and many more. Derivatives of gzip include the tar
-utility, which can extract .tar.gz files, as well as zlib, an abstraction of the
-DEFLATE algorithm in library
-form.\footnote{\url{https://en.wikipedia.org/wiki/Gzip}}
+gzip is a software method used for file compression and decompression. It is the
+most popular compression method on the Internet, integrated in protocols such as
+HTTP, XMPP and many more. Derivatives of gzip include the tar utility, which can
+extract .tar.gz files, as well as zlib, an abstraction of the DEFLATE algorithm
+in library form.\footnote{\url{https://en.wikipedia.org/wiki/Gzip}}
 
-It is based on the DEFLATE algorithm, which is a combination of LZ77 and Huffman
+It is based on the DEFLATE algorithm, which is a composition of LZ77 and Huffman
 coding. DEFLATE could be described in short by the following compression schema:
 
 \begin{math}DEFLATE(m) = Huffman(LZ77(m))\end{math}
@@ -38,9 +36,9 @@ LZ77 is a lossless data compression algorithm published by A. Lempel and J. Ziv
 in 1977 \cite{lz77}. It achieves compression by replacing repeated occurrences
 of data with references to a copy of the same data existing earlier in the
 uncompressed data stream. The reference is composed of a pair of numbers, the
-first of which represents the length of the repeated portion and the second
-describes the distance backward in the stream. In order to spot repeats, the
-protocol needs to keep track of some amount of the most recent data,
+first of which represents the length of the repeated portion and the second of
+which describes the distance backwards in the stream. In order to spot repeats,
+the protocol needs to keep track of some amount of the most recent data,
 specifically the latest 32 kilobytes. This data is held in a sliding window, so
 in order for a portion of data to be compressed, the initial appearance of it
 needs to have occurred at most 32 Kb up the data stream. Also, the minimum
@@ -86,13 +84,14 @@ of any other bit stream representing a different source symbol. The final
 mapping of source symbols to bit streams is calculated by finding the frequency
 of appearance for each source symbol of the plaintext. That way, most common
 symbols will be coded in shorter bit streams, resulting in a compression of the
-initial text.
+initial text. Finally, the compression mapping needs to be included in the final
+compressed text so that it can be used during decompression.
 
 Below follows an example of a plaintext and a valid Huffman tree that can be
 used for compressing it:
 
 \bigskip \centerline{\textit{\textbf{Chancellor on brink of second bailout for
-banks}}\footnote{\url{https://en.bitcoin.it/wiki/Genesis_block}}}
+banks}}}
 
 \bigskip \centerline{\textbf{Frequency Analysis}}
 
@@ -138,15 +137,16 @@ that enable an adversary to bypass it and compromise a user's communication with
 a website. Two major types of such attacks, cross-site scripting and cross-site
 request forgery are described in the following subsections.
 
+The unfamiliar reader should refer to \cite{sameoriginpolicymdn} for further
+discussion on Same Origin Policy.
+
 \subsection{Cross-site scripting}
 
-Cross-site scripting
-(XSS)\footnote{\url{https://en.wikipedia.org/wiki/Cross-site_scripting}} is a
-security vulnerability that allows an adversary to inject a client-side script
-into web pages viewed by other users. That way, same-origin policy can be
-bypassed and sensitive data handled by the vulnerable website may be
-compromised. XSS could be divided into two major types, \texttt{non-persistent}
-and \texttt{persistent}.
+Cross-site scripting (XSS) is a security vulnerability that allows an adversary
+to inject a client-side script into web pages viewed by other users. That way,
+same-origin policy can be bypassed and sensitive data handled by the vulnerable
+website may be compromised. XSS could be divided into two major types,
+\texttt{non-persistent} and \texttt{persistent}.
 
 \texttt{Non-persistent} XSS vulnerabilities are the most common. They show up
 when the web server does not parse the input, in order to escape or reject HTML
@@ -161,15 +161,14 @@ victim's browsers, without need from the attacker to target them individually.
 An example of such attack can occur when posting texts on social networks or
 message boards.
 
+For further information on XSS refer to \cite{xssowasp}.
+
 \subsection{Cross-site request forgery}
 
-Cross-site request forgery
-(CSRF)\footnote{\url{https://en.wikipedia.org/wiki/Cross-site_request_forgery}}
-is an exploit that allows an attacker to issue unauthorized commands to a
-website, on behalf of a user the website trusts. The attacker can then forge a
-request that performs actions or posts data on a website the victim is logged
-in, execute remote code with root privileges or compromise a root certificate
-resulting in a breach of an entire Public Key Infrastructure (PKI).
+Cross-site request forgery (CSRF) is an exploit that allows an attacker to issue
+unauthorized commands to a website, on behalf of a user the website trusts. The
+attacker can then forge a request that performs actions or posts data on a
+website the victim is logged in or execute remote code with root privileges.
 
 CSRF can be performed when the victim is trusted by a website and the attacker
 can trick the victim's browser into sending HTTP requests to that website. For
@@ -194,26 +193,25 @@ same origin will be allowed to read the token, we can assume that its value is
 safe from unauthorized scripts that aim to read and copy it to a custom header,
 in order to mark a rogue request as valid.
 
+For further discussion on XSS refer to \cite{csrfowasp}.
+
 \section{Transport Layer Security}\label{sec:tls}
 
-Transport Layer Security
-(TLS)\footnote{\url{https://en.wikipedia.org/wiki/Transport_Layer_Security}} is
-a protocol that provides security over the Internet, allowing a server and a
-client to communicate in a way that prevents eavesdropping, tampering or message
-forgery \cite{tls12}.
+Transport Layer Security (TLS) is a protocol that provides security over the
+Internet, allowing a server and a client to communicate in a way that prevents
+eavesdropping, tampering or message forgery.
 
 The users negotiate a symmetric key via asymmetric cryptography, that is
 provided by X.509 certificates. In order for the certificates to be verified for
-their owners, certificate authorities and PKIs have been created. However, it
-can be understood that, due to their essential role, certificate authorities are
-points of failure in the system, enabling for Man-in-the-Middle attacks, in case
-an adversary has managed to forge a root certificate.
+their owners, certificate authorities and PKIs have been created.
 
-Apart from certificate-related attacks, a well-known category is compression
-attacks \cite{compression_attacks}. Such attacks exploit TLS-level compression
-in order to decrypt ciphertext. In this paper, we investigate the threat model
-and performance of such an attack,
-BREACH\footnote{\url{http://breachattack.com}}.
+Apart from certificate-related attacks, another category is compression attacks
+\cite{compression_attacks}. Such attacks exploit TLS-level compression in order
+to decrypt ciphertext. In this work, we investigate the threat model and
+performance of such an attack, BREACH\footnote{\url{http://breachattack.com}}.
+
+The unfamiliar reader should refer to \cite{tls12} for further discussion on
+TLS.
 
 In the following subsections we will briefly describe the handshake negotiation
 and the format of TLS records.
@@ -223,7 +221,7 @@ and the format of TLS records.
 \begin{figure}[H] \caption{TLS handshake flow} \centering
 \includegraphics[width=0.7\textwidth]{diagrams/tls_handshake.png}\end{figure}
 
-The above sequence diagram presents the functionality of TLS handshake. User and
+The above sequence diagram presents the functionality of a TLS handshake. User and
 server exchange the basic parameters of the connection such as the protocol
 version, cipher suite, compression method and random numbers, via the
 ClientHello and ServerHello records. The server then provides all information
@@ -236,7 +234,7 @@ previous messages, after which they both have the ability to communicate safely.
 
 This functionality is used only for the basic TLS handshake.
 Client-authenticated and resumed handshakes work similarly, although they are not
-relevant for the purpose of this paper.
+relevant for the purpose of this work.
 
 \subsection{TLS record}
 
@@ -279,12 +277,12 @@ The aggressiveness of the attack can vary from passive eavesdropping to full
 control of the communication, as long as the attacker is able to impersonate
 both parties and convince them to be trusted.
 
-\begin{figure}[H] \caption{Man-in-the-Middle.} \centering
+\begin{figure}[H] \caption{Man-in-the-Middle} \centering
 \includegraphics[width=1\textwidth]{diagrams/mitm.png}\end{figure}
 
-MitM attacks can be mitigated using end-to-end cryptography, mutual
-authentication or PKIs. However, some attacks manage to bypass such mitigation
-techniques. Below we describe two such attacks, ARP Spoofing and DNS cache
+MitM attacks can be mitigated using end-to-end encryption, mutual authentication
+or PKIs. However, some attacks are still feasible against poorly configured
+end-points. Below we describe two such attacks, ARP Spoofing and DNS cache
 poisoning.
 
 \subsection{ARP Spoofing}
@@ -296,7 +294,7 @@ address of the attacker's machine. That way, the attacker may intercept the
 traffic, modify or deny packets, performing Denial-of-Service, MitM or session
 hijacking attacks.
 
-\begin{figure}[H] \caption{Arp Spoofing} \centering
+\begin{figure}[H] \caption{ARP Spoofing} \centering
 \includegraphics[width=0.8\textwidth]{diagrams/arp_spoofing.png}\end{figure}
 
 ARP spoofing can also be used for legitimate reasons, when a developer needs to
@@ -315,6 +313,6 @@ attack, when the adversary introduces data into a Domain Name System resolver's
 cache, in order to return an incorrect address for a specific host.
 
 DNS servers are usually provided by Internet Service Providers (ISPs) and used
-to resolve IP addresses to human-readable hostnames faster. A malicious
-employee, or anyone that has gained unauthorized access to the server, can
-perform DNS poisoning, affecting every user that uses the specific server.
+to resolve IP addresses to human-readable hostnames faster. However, DNS is
+unauthenticated, so the responses can be modified on-the-air affecting any user
+that makes such requests.

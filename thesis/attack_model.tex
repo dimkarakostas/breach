@@ -2,16 +2,16 @@
 
 In this chapter, we will extensively present the threat model of BREACH. We will
 explain the conditions that should be met in order for the attack to be
-launched and describe our code implementation for the attack. We will also
+launched and describe our implementation for the attack. We will also
 investigate the types of vulnerabilities in web applications that can be
 exploited with this attack, as well as introduce alternative types of exploits
 that have not been presented before.
 
 \section{Mode of Operation}\label{sec:mo}
 
-This section provides the model of the attack, the conditions required for
-the attack to launch and the code implementation that was developed for
-the purpose of this paper.
+This section provides the model of the attack, the conditions that are required
+for the attack to launch and the implementation that was developed for the
+purpose of this paper.
 
 \subsection{Description}
 
@@ -43,15 +43,10 @@ response presents different length behaviour than the rest.
 \subsection{Man-in-the-Middle implementation}
 
 In order to gain control of the victim's traffic toward a chosen endpoint, we
-created a Python script that acts a Man-in-the-Middle proxy. For the purpose of
-this paper, the 'hosts' file of the test machine was configured to redirect
-traffic to and from the chosen endpoint toward the localhost interface, as shown
-below:
-
-\plaintext{Test machine's hosts file}{hosts}
+created a Python script that acts as a Man-in-the-Middle proxy.
 
 The IPs and ports of the victim and the endpoint are configured in the
-constants' library and the Python script opens connections over TCP sockets on
+constants' file and the Python script opens connections over TCP sockets on
 both directions so that traffic from the victim to the endpoint and vice versa
 is routed through the Man-in-the-Middle proxy.
 
@@ -62,8 +57,7 @@ the packet is forwarded to the appropriate destination.
 
 The parsing of the packet data is essential, since the header contains
 information regarding the version of TLS used as well as the length of the
-record. For that purpose, we have created a mechanism to perform packet
-defragmentation since a TLS record can span over multiple TCP packets.
+record.
 
 Trying to spot a fragmented record payload, the length of the packet payload is
 compared to the length defined in the TLS header. In case the packet is smaller
@@ -83,20 +77,20 @@ attempt a connection with a lower TLS version where it should also include the
 configured properly, the downgrade attempt should be recognised by the
 \texttt{tls\_fallback\_scsv} pseudo-cipher and the connection should be dropped.
 In other case, the TLS version could be downgraded to a point where a less safe
-connection is established such as ssl 3.0 or using the rc4 stream cipher.
+connection is established such as SSL 3.0 or using the RC4 stream cipher.
 
 A log from a downgrade attempt against Facebook touch, that was created by our
 MitM proxy, can be found in Appendix section \ref{sec:downgrade_log}. For
 further information on the downgrade vulnerability see the POODLE attack
 \cite{poodle}.
 
-The code of the Man-in-the-Middle proxy, as well as the constants' library, can
+The code of the Man-in-the-Middle proxy, as well as the constants' file, can
 be found in Appendix sections \ref{sec:connect_py} and \ref{sec:constants_py}.
 
 \subsection{BREACH Javascript implementation}
 
 For the implementation of the BREACH Javascript, we assume the user has provided
-the alphabet that the characters of the secret belong as well as the known
+the alphabet that the characters of the secret belong to as well as the known
 prefix needed to bootstrap the attack. This information will be written to a
 file used by the script that performs the attack, an example of which is shown
 below:

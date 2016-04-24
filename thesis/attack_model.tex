@@ -11,7 +11,7 @@ that have not been presented before.
 
 This section provides the model of the attack, the conditions that are required
 for the attack to launch and the implementation that was developed for the
-purpose of this paper.
+purpose of this work.
 
 \subsection{Description}
 
@@ -110,7 +110,7 @@ reason, i.e. if the information file does not exist. That way the attack is
 persistent and it is the framework's responsibility to provide the script with a
 valid information parameters' file.
 
-For the purpose of this paper, the script was included in a local minimal HTML
+For the purpose of this work, the script was included in a local minimal HTML
 web page that was visited in order for the attack to begin. However, with slight
 modifications it could be run on real world applications or be injected in HTTP
 responses, as described in the following section.
@@ -133,7 +133,7 @@ along.
 The following figure depicts this methodology, which is based on the fact that
 regular HTTP traffic is not encrypted and also does not ensure data integrity.
 
-\begin{figure}[h] \caption{command-and-control mechanism.} \centering
+\begin{figure}[h] \caption{Command-and-control mechanism} \centering
 \includegraphics[width=0.6\textwidth]{diagrams/breach_mitm.png}\end{figure}
 
 It is clear that even if the victim stops the connection with the specific HTTP
@@ -144,7 +144,7 @@ resuming the attack session from where it was stopped.
 
 In the original BREACH paper \cite{breach}, Gluck, Harris and Prado investigated
 the use of CSRF tokens included in HTTP responses as secrets to be stolen.
-In this paper we suggest alternative secrets as well as point out specific
+In this work we suggest alternative secrets as well as point out specific
 vulnerabilities on widely used web applications, such as Facebook and Gmail.
 
 \subsection{Facebook Chat messages}\label{subsec:fb}
@@ -152,11 +152,11 @@ vulnerabilities on widely used web applications, such as Facebook and Gmail.
 Facebook is the biggest social network as of 2015 with millions of people using
 its chat functionality to communicate. The mobile version, Facebook
 Touch\footnote{\url{https://touch.facebook.com}} provides a lightweight
-alternative for faster browsing. In this paper we present a vulnerability
+alternative for faster browsing. In this work we present a vulnerability
 that allows an attacker to steal chat messages from Facebook Touch, using the
 BREACH attack.
 
-Mobile versions of websites provide a good alternative compated to full versions
+Mobile versions of websites provide a good alternative compared to full versions
 for a list of reasons. Firstly, these endpoints provide limited noise, given
 that they provide a lighter user interface compared to full versions.  Noise
 can be defined as any kind of string that changes between requests, such as
@@ -182,7 +182,7 @@ also contains the last message of the 5 latest conversations, which can be seen
 in the top drop-down message button of the Facebook user interface, as depicted
 below:
 
-\begin{figure}[h] \caption{Facebook Chat drop-down list.} \centering
+\begin{figure}[h] \caption{Facebook Chat drop-down list} \centering
 \includegraphics[width=0.6\textwidth]{diagrams/fb_message.png}\end{figure}
 
 The next step is to validate that the search string is reflected in the
@@ -190,7 +190,7 @@ response, which should also contain the private secret. Below is a fragment of
 the HTML response body, where it can be clearly seen that this condition is met:
 
 \begin{figure}[h] \caption{Facebook response body containing both secret and
-reflection.} \centering
+reflection} \centering
 \includegraphics[width=1.1\textwidth]{diagrams/fb_response.png}\end{figure}
 
 If the search string was not reflected in the response the attack could still
@@ -231,21 +231,21 @@ to be, Google will redirect the request to a URL where the vacation will be
 filled with a randomly generated string and return an empty result page,
 stating the search action as incomplete, as shown below:
 
-\begin{figure}[h] \caption{Invalid Gmail search.} \centering
+\begin{figure}[h] \caption{Invalid Gmail search} \centering
 \includegraphics[width=1\textwidth]{diagrams/gmail_search.png}\end{figure}
 
 However, the HTML body of the response contains both the search string and the
 authentication token, as can be seen in the following figure:
 
 \begin{figure}[h] \caption{Gmail response body containing both secret and
-reflection.} \centering
+reflection} \centering
 \includegraphics[width=1\textwidth]{diagrams/gmail_response.png}\end{figure}
 
 Another vulnerability that can be exploited is when trying to find the first
 three characters to bootstrap the attack. In the response body, the
 authentication token is included as below:
 
-\begin{figure}[h] \caption{Gmail authentication token.} \centering
+\begin{figure}[h] \caption{Gmail authentication token} \centering
 \includegraphics[width=0.6\textwidth]{diagrams/gmail_bootstrap.png}\end{figure}
 
 The authentication token is preceded by the characters \texttt{at=}, which can
@@ -262,7 +262,7 @@ full gmail website. If a user issues a search request in a URL like
 response is empty, the HTML body will also contain both the subject and an
 initial fragment of the body of the latest inbox mails:
 
-\begin{figure}[h] \caption{Gmail empty search response containing latest mails.}
+\begin{figure}[h] \caption{Gmail empty search response containing latest mails}
 \centering
 \includegraphics[width=1.1\textwidth]{diagrams/gmail_plain_response.png}\end{figure}
 
@@ -301,7 +301,7 @@ Applying infgen on the two HTML responses we obtained with mitmproxy, the
 comparison between the correct and the incorrect search string can be seen in
 the following figure:
 
-\begin{figure}[h] \caption{Comparison of two compressed responses.}
+\begin{figure}[h] \caption{Comparison of two compressed responses}
 \includegraphics[width=1.15\textwidth]{diagrams/compression_comparison.png}\end{figure}
 
 The left part of the figure shows the compression when the incorrect character

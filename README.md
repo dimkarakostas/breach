@@ -1,5 +1,7 @@
 # BREACH
 
+*NOTE*: This repository is not maintained anymore. The project has evolved in the [Rupture tool](https://github.com/decrypto-org/rupture), so make sure to check this out if you are interested in the research on the BREACH attack.
+
 ## Description
 
 Tools to execute [BREACH](http://breachattack.com) attacks.
@@ -23,4 +25,3 @@ The above code was created for the needs of my thesis at the [School of Electric
 ## License
 
 The content of this project is licensed under the [Creative Commons Attribution 4.0 license](http://creativecommons.org/licenses/by/4.0/) and the source code is licensed under the [MIT license](http://opensource.org/licenses/mit-license.php).
-
